@@ -28,5 +28,39 @@ export default function ProductTextOverlays({
 
   const sections = services.slice(0, 4);
 
-  return null;
+  return (
+    <>
+      <motion.div
+        className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none p-4 text-center text-white"
+        style={{ opacity: opacity1, y: y1 }}
+      >
+        <h2 className="text-4xl md:text-6xl font-bold mb-4 drop-shadow-lg">{sections[0]?.name}</h2>
+        <p className="text-xl md:text-2xl max-w-2xl drop-shadow-md">{sections[0]?.description}</p>
+      </motion.div>
+
+      <motion.div
+        className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none p-4 text-center text-white"
+        style={{ opacity: opacity2, y: y2 }}
+      >
+        <h2 className="text-4xl md:text-6xl font-bold mb-4 drop-shadow-lg">{sections[1]?.name}</h2>
+        <p className="text-xl md:text-2xl max-w-2xl drop-shadow-md">{sections[1]?.description}</p>
+      </motion.div>
+
+      <motion.div
+        className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none p-4 text-center text-white"
+        style={{ opacity: opacity3, y: y3 }}
+      >
+        <h2 className="text-4xl md:text-6xl font-bold mb-4 drop-shadow-lg">{sections[2]?.name}</h2>
+        <p className="text-xl md:text-2xl max-w-2xl drop-shadow-md">{sections[2]?.description}</p>
+      </motion.div>
+
+      <motion.div
+        className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none p-4 text-center text-white"
+        style={{ opacity: opacity4, y: y4 }}
+      >
+        <h2 className="text-4xl md:text-6xl font-bold mb-4 drop-shadow-lg">{sections[3]?.name}</h2>
+        <p className="text-xl md:text-2xl max-w-2xl drop-shadow-md">{sections[3]?.description}</p>
+      </motion.div>
+    </>
+  );
 }
