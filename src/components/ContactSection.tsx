@@ -44,7 +44,7 @@ export default function ContactSection() {
       } else {
         setError(data.error || "Something went wrong.");
       }
-    } catch (err) {
+    } catch {
       setError("Failed to send message. Please check your connection and try again.");
     } finally {
       setIsSubmitting(false);
@@ -65,7 +65,7 @@ export default function ContactSection() {
             viewport={{ once: true }}
             className="inline-block px-4 py-1.5 rounded-full text-sm font-semibold tracking-wide uppercase bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 mb-6 text-purple-600 dark:text-purple-400 transition-colors shadow-sm dark:shadow-none"
           >
-            Let's Talk
+            Let&apos;s Talk
           </motion.div>
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
