@@ -21,7 +21,7 @@ export default function ContactSection() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.firstName || !formData.email || !formData.message) {
       setError("Please fill in all required fields.");
       return;
@@ -37,7 +37,7 @@ export default function ContactSection() {
         body: JSON.stringify(formData)
       });
       const data = await res.json();
-      
+
       if (data.success) {
         setIsSuccess(true);
         setFormData({ firstName: "", lastName: "", email: "", message: "" });
@@ -53,10 +53,10 @@ export default function ContactSection() {
 
   return (
     <section id="contact" className="relative py-32 bg-transparent transition-colors duration-500 overflow-hidden">
-      
+
       {/* Subtle Background Glows */}
       <div className="absolute top-1/2 left-0 w-[600px] h-[600px] bg-cyan-100/40 dark:bg-cyan-900/10 blur-[150px] rounded-full pointer-events-none -translate-y-1/2 -translate-x-1/3 transition-colors duration-500" />
-      
+
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <div className="mb-20 text-center">
           <motion.div
@@ -67,7 +67,7 @@ export default function ContactSection() {
           >
             Let&apos;s Talk
           </motion.div>
-          <motion.h2 
+          <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -76,7 +76,7 @@ export default function ContactSection() {
           >
             Start Your Transformation
           </motion.h2>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -88,9 +88,9 @@ export default function ContactSection() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
-          
+
           {/* Left: Contact Info */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
@@ -99,7 +99,7 @@ export default function ContactSection() {
           >
             <div className="bg-white dark:bg-[#1A1C23] p-8 rounded-3xl border border-slate-200 dark:border-white/5 shadow-xl shadow-slate-200/50 dark:shadow-none transition-colors duration-500">
               <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-8 transition-colors">Contact Information</h3>
-              
+
               <div className="flex flex-col gap-8">
                 <div className="flex items-start gap-4">
                   <div className="p-4 rounded-full bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 transition-colors">
@@ -132,7 +132,7 @@ export default function ContactSection() {
                   <div>
                     <h4 className="text-lg font-semibold text-slate-900 dark:text-white mb-1 transition-colors">Visit Us</h4>
                     <p className="text-slate-600 dark:text-gray-400 max-w-[200px] leading-relaxed transition-colors">
-                      123 Innovation Drive, Tech Park, City 400001
+                      Office No.1, Near Main Gate, Hari Ganga Society, Yerwada. Pune - 411006
                     </p>
                   </div>
                 </div>
@@ -141,7 +141,7 @@ export default function ContactSection() {
           </motion.div>
 
           {/* Right: Contact Form */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
@@ -149,7 +149,7 @@ export default function ContactSection() {
             className="lg:col-span-7 h-full"
           >
             {isSuccess ? (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="bg-white dark:bg-[#1A1C23] p-10 lg:p-14 rounded-[2.5rem] border border-green-200 dark:border-green-500/20 shadow-xl shadow-green-500/10 flex flex-col items-center justify-center text-center h-full min-h-[500px] transition-colors duration-500"
@@ -161,7 +161,7 @@ export default function ContactSection() {
                 <p className="text-lg text-slate-600 dark:text-gray-400 mb-10 max-w-md">
                   Thank you! We have received your request and our team will get in touch with you soon.
                 </p>
-                <button 
+                <button
                   onClick={() => setIsSuccess(false)}
                   className="px-8 py-3 rounded-full bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-900 dark:text-white font-semibold transition-colors border border-slate-200 dark:border-white/10"
                 >
@@ -169,7 +169,7 @@ export default function ContactSection() {
                 </button>
               </motion.div>
             ) : (
-              <form 
+              <form
                 className="bg-white dark:bg-[#1A1C23] p-8 lg:p-10 rounded-[2.5rem] border border-slate-200 dark:border-white/5 shadow-xl shadow-slate-200/50 dark:shadow-none flex flex-col gap-6 transition-colors duration-500 h-full"
                 onSubmit={handleSubmit}
               >
@@ -182,9 +182,9 @@ export default function ContactSection() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="flex flex-col gap-2">
                     <label htmlFor="firstName" className="text-sm font-medium text-slate-700 dark:text-gray-300 transition-colors">First Name *</label>
-                    <input 
-                      type="text" 
-                      id="firstName" 
+                    <input
+                      type="text"
+                      id="firstName"
                       value={formData.firstName}
                       onChange={handleChange}
                       required
@@ -194,9 +194,9 @@ export default function ContactSection() {
                   </div>
                   <div className="flex flex-col gap-2">
                     <label htmlFor="lastName" className="text-sm font-medium text-slate-700 dark:text-gray-300 transition-colors">Last Name</label>
-                    <input 
-                      type="text" 
-                      id="lastName" 
+                    <input
+                      type="text"
+                      id="lastName"
                       value={formData.lastName}
                       onChange={handleChange}
                       className="w-full bg-slate-50 dark:bg-[#12131A] border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
@@ -207,9 +207,9 @@ export default function ContactSection() {
 
                 <div className="flex flex-col gap-2">
                   <label htmlFor="email" className="text-sm font-medium text-slate-700 dark:text-gray-300 transition-colors">Email Address *</label>
-                  <input 
-                    type="email" 
-                    id="email" 
+                  <input
+                    type="email"
+                    id="email"
                     value={formData.email}
                     onChange={handleChange}
                     required
@@ -220,8 +220,8 @@ export default function ContactSection() {
 
                 <div className="flex flex-col gap-2 flex-1">
                   <label htmlFor="message" className="text-sm font-medium text-slate-700 dark:text-gray-300 transition-colors">How can we help? *</label>
-                  <textarea 
-                    id="message" 
+                  <textarea
+                    id="message"
                     rows={5}
                     value={formData.message}
                     onChange={handleChange}
@@ -231,7 +231,7 @@ export default function ContactSection() {
                   />
                 </div>
 
-                <button 
+                <button
                   type="submit"
                   disabled={isSubmitting}
                   className="mt-2 flex items-center justify-center gap-2 w-full py-5 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-lg transition-all shadow-lg shadow-cyan-500/25 disabled:opacity-70 disabled:cursor-not-allowed"
