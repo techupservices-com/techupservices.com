@@ -23,14 +23,21 @@ export async function POST(req: Request) {
     const safeLastName = lastName ? escapeHtml(String(lastName)) : 'Not provided';
     const safeEmail = escapeHtml(String(email));
     const safeMessage = escapeHtml(String(message)).replace(/\n/g, '<br>');
+    const requestId = req.headers.get('x-railway-request-id') || crypto.randomUUID();
+    const contactContext = {
+      requestId,
+      firstName: safeFirstName,
+      lastName: safeLastName,
+      email: safeEmail,
+    };
 
     if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
       if (process.env.NODE_ENV === 'production') {
-        console.error('SMTP_USER and SMTP_PASS are missing in production.');
+        console.error('Contact form email service is not configured.', contactContext);
         return NextResponse.json({ success: false, error: 'Email service is not configured' }, { status: 500 });
       }
 
-      console.warn('SMTP_USER and SMTP_PASS are missing in development. Email logic will simulate success.');
+      console.warn('Contact form email service is not configured in development. Simulating success.', contactContext);
       await new Promise(resolve => setTimeout(resolve, 800));
       return NextResponse.json({ success: true, simulated: true });
     }
@@ -85,12 +92,31 @@ export async function POST(req: Request) {
       `,
     };
 
-    await transporter.sendMail(adminMailOptions);
-    await transporter.sendMail(userConfirmationOptions);
+    console.info('Contact form submission received.', contactContext);
+
+    const adminResult = await transporter.sendMail(adminMailOptions);
+    console.info('Admin email sent.', {
+      ...contactContext,
+      to: adminMailOptions.to,
+      messageId: adminResult.messageId,
+      accepted: adminResult.accepted,
+      rejected: adminResult.rejected,
+    });
+
+    const customerResult = await transporter.sendMail(userConfirmationOptions);
+    console.info('Customer confirmation email sent.', {
+      ...contactContext,
+      to: userConfirmationOptions.to,
+      messageId: customerResult.messageId,
+      accepted: customerResult.accepted,
+      rejected: customerResult.rejected,
+    });
+
+    console.info('Contact form email flow completed.', contactContext);
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Email send failed:', error);
+    console.error('Contact form email flow failed.', error);
     return NextResponse.json({ success: false, error: 'Failed to send message' }, { status: 500 });
   }
 }
