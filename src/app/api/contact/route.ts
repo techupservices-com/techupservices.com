@@ -60,14 +60,38 @@ export async function POST(req: Request) {
       subject: `New Lead: ${safeFirstName} ${lastName ? safeLastName : ''}`.trim(),
       html: `
         <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #06b6d4;">New Lead Inquiry</h2>
-          <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-            <tr><td style="padding: 10px; border-bottom: 1px solid #eee;"><strong>First Name:</strong></td><td style="padding: 10px; border-bottom: 1px solid #eee;">${safeFirstName}</td></tr>
-            <tr><td style="padding: 10px; border-bottom: 1px solid #eee;"><strong>Last Name:</strong></td><td style="padding: 10px; border-bottom: 1px solid #eee;">${safeLastName}</td></tr>
-            <tr><td style="padding: 10px; border-bottom: 1px solid #eee;"><strong>Email:</strong></td><td style="padding: 10px; border-bottom: 1px solid #eee;">${safeEmail}</td></tr>
-          </table>
-          <h3 style="margin-top: 30px;">Message:</h3>
-          <p style="background: #f8fafc; padding: 15px; border-radius: 8px; font-style: italic;">${safeMessage}</p>
+          <div style="text-align: center; margin-bottom: 24px;">
+            <h2 style="color: #06b6d4; margin-bottom: 12px;">New Lead Inquiry</h2>
+            <p style="font-size: 16px; line-height: 1.6; margin: 0; color: #475569;">
+              A new enquiry has been submitted through the TechUpServices website contact form.
+            </p>
+          </div>
+          <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+            <p style="margin: 0 0 14px; font-size: 14px; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em;">Lead Details</p>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; width: 38%; color: #64748b;"><strong>First Name</strong></td>
+                <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #0f172a;">${safeFirstName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #64748b;"><strong>Last Name</strong></td>
+                <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #0f172a;">${safeLastName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 0; color: #64748b;"><strong>Email</strong></td>
+                <td style="padding: 10px 0; color: #0f172a;">
+                  <a href="mailto:${safeEmail}" style="color: #06b6d4; text-decoration: none;">${safeEmail}</a>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div style="text-align: left; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
+            <p style="margin-top: 0; color: #64748b; font-size: 14px;">Customer message</p>
+            <p style="font-style: italic; margin: 0; line-height: 1.7; color: #0f172a;">"${safeMessage}"</p>
+          </div>
+          <p style="font-size: 14px; color: #64748b; margin-top: 24px; text-align: center;">
+            Reply directly to this email to contact the lead.
+          </p>
         </div>
       `,
     };
