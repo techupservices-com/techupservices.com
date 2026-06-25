@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { ArrowDown, CalendarDays } from "lucide-react";
 import { services } from "@/data/services";
 import { DUR, EASE, useMotionSafe } from "@/lib/motion";
+import TiltCard from "@/components/TiltCard";
+import TextReveal from "@/components/TextReveal";
 
 const SPOTLIGHT_R = 260;
 
@@ -40,6 +42,14 @@ export default function CommandHero() {
   const [entered, setEntered] = useState(false);
   const { shouldReduce } = useMotionSafe();
   const reduceMotion = Boolean(shouldReduce);
+
+  function updateTouchCursor(event: ReactPointerEvent<HTMLElement>) {
+    if (reduceMotion || event.pointerType === "mouse") return;
+    mouse.current = { x: event.clientX, y: event.clientY };
+    smooth.current = { x: event.clientX, y: event.clientY };
+    setCursor({ x: event.clientX, y: event.clientY });
+    setEntered(true);
+  }
 
   useEffect(() => {
     if (reduceMotion) return;
@@ -79,6 +89,8 @@ export default function CommandHero() {
   return (
     <section
       ref={sectionRef}
+      onPointerDown={updateTouchCursor}
+      onPointerMove={updateTouchCursor}
       className="cyber-hero relative h-dvh min-h-[720px] overflow-hidden bg-surface-base text-ink-strong"
       style={style}
       aria-label="TechUpServices service atlas"
@@ -145,21 +157,21 @@ function HeroStatement() {
       >
         Premium AI automation and digital infrastructure
       </motion.div>
-      <motion.h1
-        initial={{ opacity: 0, y: 32, filter: "blur(14px)" }}
-        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-        transition={{ duration: 1.15, ease: EASE.emphasized, delay: 0.28 }}
+      <TextReveal
+        as="h1"
+        whileInView={false}
+        delay={0.24}
+        stagger={0.1}
+        segments={[[{ text: "Automate." }], [{ text: "Build. " }, { text: "Scale.", className: "text-brand-gradient" }]]}
         className="mt-s4 font-display text-fs-display font-bold leading-[0.88] tracking-[var(--tracking-display)] text-ink-strong"
-      >
-        Automate.<br />Build. <span className="text-brand-gradient">Scale.</span>
-      </motion.h1>
+      />
       <motion.p
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.9, ease: EASE.emphasized, delay: 0.58 }}
         className="mt-s5 max-w-2xl text-fs-body-lg text-ink-body"
       >
-        Move the cursor across the atlas to reveal the service systems TechUpServices builds for founders, operators, and growth teams.
+        Explore the atlas to reveal the service systems TechUpServices builds for founders, operators, and growth teams.
       </motion.p>
       <motion.div
         initial={{ opacity: 0, y: 18 }}
@@ -211,7 +223,7 @@ function ServiceConstellation({ active, setActive }: { active: number; setActive
         const selected = index === active;
         const position = POSITIONS[index];
         return (
-          <li key={service.id} className="absolute" style={position}>
+          <li key={service.id} className="absolute -translate-x-1/2 -translate-y-1/2" style={position}>
             <ServiceAtlasCard
               service={service}
               selected={selected}
@@ -240,32 +252,52 @@ function ServiceAtlasCard({
   }
 
   return (
-    <button
-      type="button"
-      onPointerEnter={onActivate}
-      onPointerMove={onPointerMove}
-      onFocus={onActivate}
-      onClick={onActivate}
-      className={`service-atlas-card group min-h-[7.5rem] w-[clamp(14rem,19vw,18.75rem)] -translate-x-1/2 -translate-y-1/2 rounded-xl p-s5 text-left transition-all duration-slow ease-emphasized focus-visible:border-[color:var(--accent)] ${
-        selected ? "is-active scale-[1.04]" : "opacity-55 hover:opacity-100"
-      }`}
-      style={{ ["--accent" as string]: service.themeColor } as CSSProperties}
-      aria-pressed={selected}
-    >
-      <span className="block max-w-[15rem] font-display text-fs-h4 font-bold leading-[1.02] tracking-[var(--tracking-tight)] text-ink-strong">
-        {service.name}
-      </span>
-      <span className="mt-s3 block max-w-[14.5rem] text-fs-body font-normal leading-snug text-ink-body">
-        {service.tagline}
-      </span>
-    </button>
+    <TiltCard className="w-[clamp(14rem,19vw,18.75rem)]">
+      <button
+        type="button"
+        onPointerEnter={onActivate}
+        onPointerMove={onPointerMove}
+        onFocus={onActivate}
+        onClick={onActivate}
+        className={`service-atlas-card group min-h-[7.5rem] w-full rounded-xl p-s5 text-left transition-all duration-slow ease-emphasized focus-visible:border-[color:var(--accent)] ${
+          selected ? "is-active scale-[1.04]" : "opacity-55 hover:opacity-100"
+        }`}
+        style={{ ["--accent" as string]: service.themeColor } as CSSProperties}
+        aria-pressed={selected}
+      >
+        <span className="block max-w-[15rem] font-display text-fs-h4 font-bold leading-[1.02] tracking-[var(--tracking-tight)] text-ink-strong">
+          {service.name}
+        </span>
+        <span className="mt-s3 block max-w-[14.5rem] text-fs-body font-normal leading-snug text-ink-body">
+          {service.tagline}
+        </span>
+      </button>
+    </TiltCard>
   );
 }
 
 function MobileServiceSelector({ active, setActive }: { active: number; setActive: (index: number) => void }) {
+  const service = services[active];
+
   return (
-    <div className="relative z-50 -mt-s4 mb-s5 md:hidden" aria-label="Select a service">
-      <div className="flex gap-s2 overflow-x-auto pb-s2">
+    <div className="relative z-50 -mt-s3 mb-s5 md:hidden" aria-label="Select a service">
+      <motion.div
+        key={service.id}
+        initial={{ opacity: 0, y: 12, filter: "blur(8px)" }}
+        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        transition={{ duration: DUR.slow, ease: EASE.emphasized }}
+        className="command-surface scanline mb-s3 rounded-xl p-s4"
+        style={{ ["--accent" as string]: service.themeColor } as CSSProperties}
+      >
+        <div className="flex items-center justify-between gap-s3 text-fs-caption uppercase tracking-[var(--tracking-eyebrow)] text-ink-muted">
+          <span>Tap atlas</span>
+          <span className="h-s2 w-s8 rounded-pill bg-[color:var(--accent)] shadow-2" aria-hidden="true" />
+        </div>
+        <div className="mt-s3 font-display text-fs-h4 font-bold leading-tight text-ink-strong">{service.name}</div>
+        <p className="mt-s2 text-fs-body text-ink-body">{service.tagline}</p>
+      </motion.div>
+
+      <div className="flex snap-x gap-s2 overflow-x-auto pb-s2 [scrollbar-width:thin]">
         {services.map((service, index) => {
           const selected = active === index;
           return (
@@ -273,15 +305,17 @@ function MobileServiceSelector({ active, setActive }: { active: number; setActiv
               key={service.id}
               type="button"
               onClick={() => setActive(index)}
-              className="min-h-[64px] w-[15rem] flex-none rounded-lg border px-s4 py-s3 text-left text-fs-caption transition-colors duration-base"
+              className={`min-h-[56px] w-[10.75rem] flex-none snap-start rounded-lg border px-s3 py-s3 text-left text-fs-caption transition-all duration-base active:scale-[0.98] ${selected ? "shadow-2" : "opacity-70"}`}
               style={{
                 borderColor: selected ? service.themeColor : "var(--surface-line)",
                 color: selected ? "var(--ink-strong)" : "var(--ink-muted)",
-                background: selected ? "var(--surface-raised)" : "transparent",
+                background: selected
+                  ? `linear-gradient(135deg, color-mix(in srgb, ${service.themeColor} 18%, transparent), var(--surface-raised))`
+                  : "transparent",
               }}
+              aria-pressed={selected}
             >
               <span className="block font-display font-bold text-ink-strong">{service.name}</span>
-              <span className="mt-s1 block text-ink-muted">{service.tagline}</span>
             </button>
           );
         })}

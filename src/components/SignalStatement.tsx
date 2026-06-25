@@ -3,6 +3,7 @@
 import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { EASE } from "@/lib/motion";
+import TextReveal from "@/components/TextReveal";
 
 export default function SignalStatement() {
   const ref = useRef<HTMLElement>(null);
@@ -16,16 +17,15 @@ export default function SignalStatement() {
       <div className="signal-grid" aria-hidden="true" />
       <div className="container-page relative z-10 grid min-h-dvh place-items-center py-section-t">
         <motion.div style={{ y, opacity }} className="max-w-6xl text-center [perspective:480px]">
-          <motion.p
-            initial={{ opacity: 0, y: 26, filter: "blur(12px)" }}
-            whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            viewport={{ once: true, amount: 0.35 }}
-            transition={{ duration: 1, ease: EASE.emphasized }}
+          <TextReveal
+            as="p"
+            stagger={0.035}
+            segments={[[
+              { text: "We turn scattered tools, manual follow-ups, fragile websites, and campaign noise into " },
+              { text: "one engineered growth system.", className: "text-brand-gradient" },
+            ]]}
             className="font-display text-[clamp(2rem,5vw,5rem)] font-bold leading-[1.03] tracking-[var(--tracking-display)] text-ink-strong"
-          >
-            We turn scattered tools, manual follow-ups, fragile websites, and campaign noise into{" "}
-            <span className="text-brand-gradient">one engineered growth system.</span>
-          </motion.p>
+          />
           <motion.p
             initial={{ opacity: 0, y: 18 }}
             whileInView={{ opacity: 1, y: 0 }}

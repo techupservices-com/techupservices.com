@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { revealVariants, staggerChild, staggerParent, useMotionSafe } from "@/lib/motion";
+import TextReveal from "@/components/TextReveal";
 
 type ContactPoint = {
   label: string;
@@ -31,9 +32,11 @@ export default function Who() {
           <div className="grid gap-s8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
             <div>
               <div className="eyebrow">Studio coordinates</div>
-              <h2 className="mt-s4 font-display text-fs-h2 font-bold text-ink-strong">
-                Architects of the <span className="text-brand-gradient">digital future.</span>
-              </h2>
+              <TextReveal
+                as="h2"
+                segments={[[{ text: "Architects of the " }, { text: "digital future.", className: "text-brand-gradient" }]]}
+                className="mt-s4 font-display text-fs-h2 font-bold text-ink-strong"
+              />
             </div>
 
             <motion.div variants={safe(revealVariants)} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-15%" }}>

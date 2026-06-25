@@ -23,6 +23,7 @@ import Stats from "@/components/Stats";
 import Who from "@/components/Who";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
+import ScrollReveal from "@/components/ScrollReveal";
 
 export default function Home() {
   return (
@@ -31,11 +32,21 @@ export default function Home() {
 
       <div className="relative z-10">
         <CommandHero />
-        <SignalStatement />
-        <ServicesList />
-        <Stats />
-        <Who />
-        <Contact />
+        <ScrollReveal y={22} amount={0.12}>
+          <SignalStatement />
+        </ScrollReveal>
+        <ScrollReveal y={22} amount={0.08}>
+          <ServicesList />
+        </ScrollReveal>
+        <ScrollReveal y={22} amount={0.14}>
+          <Stats />
+        </ScrollReveal>
+        <ScrollReveal y={22} amount={0.14}>
+          <Who />
+        </ScrollReveal>
+        <ScrollReveal y={22} amount={0.12}>
+          <Contact />
+        </ScrollReveal>
       </div>
 
       <Footer />

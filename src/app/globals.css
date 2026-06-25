@@ -228,6 +228,11 @@
   50% { opacity: 1; transform: scaleX(1); }
 }
 
+@keyframes cyber-breathe {
+  0%, 100% { opacity: 0.34; transform: translate3d(-6%, -4%, 0) scale(0.92); }
+  50% { opacity: 0.72; transform: translate3d(5%, 3%, 0) scale(1.08); }
+}
+
 .cyber-hero {
   --surface-base: var(--command-base);
   --surface-raised: var(--command-raised);
@@ -260,6 +265,20 @@
   mask-size: 100% 100%;
 }
 
+.cyber-reveal-layer::before {
+  content: "";
+  position: absolute;
+  inset: 12% 8% auto auto;
+  width: min(64vw, 22rem);
+  aspect-ratio: 1;
+  pointer-events: none;
+  border-radius: var(--radius-pill);
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 22%, transparent), transparent 68%);
+  filter: blur(18px);
+  opacity: 0.42;
+  animation: cyber-breathe var(--dur-ambient) var(--ease-standard) infinite;
+}
+
 .cyber-watermark {
   font-size: clamp(4.5rem, 18vw, 18rem);
   color: transparent;
@@ -273,15 +292,25 @@
 .service-atlas-card {
   position: relative;
   overflow: hidden;
+  isolation: isolate;
+  transform-style: preserve-3d;
   --card-x: 50%;
   --card-y: 50%;
   border: 1px solid color-mix(in srgb, var(--surface-line) 72%, transparent);
   background:
-    linear-gradient(145deg, color-mix(in srgb, var(--surface-raised) 38%, transparent), color-mix(in srgb, var(--surface-base) 22%, transparent)),
+    radial-gradient(circle at var(--card-x) var(--card-y), color-mix(in srgb, var(--ink-strong) 7%, transparent), transparent 44%),
+    linear-gradient(145deg, color-mix(in srgb, var(--surface-raised) 54%, transparent), color-mix(in srgb, var(--surface-base) 24%, transparent)),
     radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 56%);
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, var(--ink-strong) 7%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, var(--surface-base) 72%, transparent),
     0 14px 42px rgba(0, 0, 0, 0.2);
+}
+
+.service-atlas-card > span {
+  position: relative;
+  z-index: 2;
+  transform: translateZ(24px);
 }
 
 .service-atlas-card::before {
@@ -294,10 +323,18 @@
     radial-gradient(circle at var(--card-x) var(--card-y), color-mix(in srgb, var(--ink-strong) 8%, transparent), transparent 10rem);
   opacity: 0;
   transition: opacity var(--dur-slow) var(--ease-standard);
+  z-index: 1;
 }
 
 .service-atlas-card::after {
-  content: none;
+  content: "";
+  position: absolute;
+  inset: 1px;
+  pointer-events: none;
+  border-radius: calc(var(--radius-xl) - 1px);
+  border: 1px solid color-mix(in srgb, var(--ink-strong) 8%, transparent);
+  opacity: 0.72;
+  z-index: 1;
 }
 
 .service-atlas-card:hover,
@@ -307,7 +344,8 @@
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, var(--ink-strong) 12%, transparent),
     0 0 0 1px color-mix(in srgb, var(--accent) 14%, transparent),
-    0 22px 58px rgba(0, 0, 0, 0.3);
+    0 22px 58px rgba(0, 0, 0, 0.3),
+    0 0 28px color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
 .service-atlas-card:hover::before,
@@ -316,15 +354,52 @@
   opacity: 1;
 }
 
+.service-stack-card {
+  position: sticky;
+  border: 1px solid color-mix(in srgb, var(--surface-line) 78%, transparent);
+  background:
+    radial-gradient(circle at 12% 18%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 24rem),
+    radial-gradient(circle at 88% 92%, color-mix(in srgb, var(--brand-grad-mid) 12%, transparent), transparent 26rem),
+    linear-gradient(145deg, color-mix(in srgb, var(--surface-raised) 88%, transparent), color-mix(in srgb, var(--surface-base) 96%, transparent));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--ink-strong) 8%, transparent),
+    0 26px 90px rgba(0, 0, 0, 0.32);
+  transform-origin: center top;
+  will-change: transform;
+}
+
+.service-stack-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--ink-faint) 11%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--ink-faint) 11%, transparent) 1px, transparent 1px);
+  background-size: 3.5rem 3.5rem;
+  mask-image: radial-gradient(circle at 50% 42%, black, transparent 72%);
+  opacity: 0.5;
+}
+
+.service-stack-card::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  pointer-events: none;
+  border-radius: calc(var(--radius-2xl) - 1px);
+  border: 1px solid color-mix(in srgb, var(--ink-strong) 7%, transparent);
+}
+
 @media (max-width: 767px) {
   .cyber-reveal-layer {
-    -webkit-mask-image: radial-gradient(circle at 50% 38%, rgba(0, 0, 0, 1), transparent 72%);
-    mask-image: radial-gradient(circle at 50% 38%, rgba(0, 0, 0, 1), transparent 72%);
+    -webkit-mask-image: radial-gradient(circle 17rem at var(--cursor-x) var(--cursor-y), rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.54) 54%, rgba(0, 0, 0, 0) 100%), radial-gradient(circle at 50% 35%, rgba(0, 0, 0, 0.88), transparent 76%);
+    mask-image: radial-gradient(circle 17rem at var(--cursor-x) var(--cursor-y), rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.54) 54%, rgba(0, 0, 0, 0) 100%), radial-gradient(circle at 50% 35%, rgba(0, 0, 0, 0.88), transparent 76%);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .scanline::after { animation: none; opacity: 0; }
+  .cyber-reveal-layer::before { animation: none; }
   .cyber-reveal-layer {
     -webkit-mask-image: radial-gradient(circle at 50% 42%, rgba(0, 0, 0, 1), transparent 76%);
     mask-image: radial-gradient(circle at 50% 42%, rgba(0, 0, 0, 1), transparent 76%);

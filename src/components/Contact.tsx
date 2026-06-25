@@ -10,6 +10,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Check, AlertCircle, Loader2 } from "lucide-react";
 import { DUR, EASE } from "@/lib/motion";
+import TextReveal from "@/components/TextReveal";
 
 type Status = "idle" | "sending" | "ok" | "error";
 
@@ -75,9 +76,11 @@ export default function Contact() {
           {/* Left column — invitation */}
           <div className="md:col-span-5">
             <div className="eyebrow">Discovery console</div>
-            <h2 className="mt-s4 text-fs-h2 font-display font-bold text-ink-strong">
-              Tell us what needs to become <span className="text-brand-gradient">a working system.</span>
-            </h2>
+            <TextReveal
+              as="h2"
+              segments={[[{ text: "Tell us what needs to become " }, { text: "a working system.", className: "text-brand-gradient" }]]}
+              className="mt-s4 text-fs-h2 font-display font-bold text-ink-strong"
+            />
             <p className="mt-s5 text-fs-body-lg text-ink-body max-w-prose">
               A short message is enough. We reply within one business day with
               a real human, a clarifying question or two, and a calendar link
