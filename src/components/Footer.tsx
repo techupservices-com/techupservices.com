@@ -12,8 +12,9 @@ export default function Footer() {
   const year = 2026; // Date.now() forbidden in some agent contexts — static is fine here
 
   return (
-    <footer className="relative bg-surface-base border-t border-surface-line">
-      <div className="container-page py-s8">
+    <footer className="command-section border-t border-surface-line">
+      <div className="signal-grid" aria-hidden="true" />
+      <div className="container-page relative z-10 py-s8">
         <div className="grid grid-cols-2 md:grid-cols-12 gap-s6">
           {/* Wordmark + tagline */}
           <div className="col-span-2 md:col-span-5">
@@ -26,10 +27,10 @@ export default function Footer() {
               <span className="text-brand-gradient">Up</span>
               <span className="font-medium">Services</span>
             </Link>
-            <p className="mt-s4 text-fs-body text-ink-body max-w-sm">
-              A small studio of senior practitioners building bespoke AI automation
-              and digital systems. Pune, India — shipping worldwide.
-            </p>
+             <p className="mt-s4 text-fs-body text-ink-body max-w-sm">
+               A small studio of senior practitioners building bespoke AI automation
+               and digital systems. Pune, India — shipping worldwide.
+             </p>
           </div>
 
           {/* Sitemap */}
@@ -98,7 +99,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-s8 pt-s5 border-t border-surface-line flex flex-wrap items-center justify-between gap-s3 text-fs-caption text-ink-muted">
+         <div className="mt-s8 pt-s5 border-t border-surface-line flex flex-wrap items-center justify-between gap-s3 text-fs-caption text-ink-muted">
           <span>© {year} TechUpServices. All rights reserved.</span>
           <span>Built with discipline, in Pune.</span>
         </div>

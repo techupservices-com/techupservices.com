@@ -15,9 +15,9 @@ type Status = "idle" | "sending" | "ok" | "error";
 
 const SERVICE_OPTIONS = [
   "AI Automation",
-  "Social Media",
+  "Social Media Management",
   "Website Development",
-  "Mobile App",
+  "Mobile App Development",
   "WhatsApp Automation",
   "Digital Marketing",
   "Tech Consulting",
@@ -35,15 +35,18 @@ export default function Contact() {
     setErrorMsg("");
 
     const form = new FormData(formEl);
+    const name = String(form.get("name") ?? "").trim();
+    const [firstName, ...lastNameParts] = name.split(/\s+/).filter(Boolean);
     const payload = {
-      name:    String(form.get("name")    ?? "").trim(),
-      email:   String(form.get("email")   ?? "").trim(),
-      phone:   String(form.get("phone")   ?? "").trim(),
+      firstName: firstName ?? "",
+      lastName: lastNameParts.join(" "),
+      email: String(form.get("email") ?? "").trim(),
+      phone: String(form.get("phone") ?? "").trim(),
       service: String(form.get("service") ?? "").trim(),
       message: String(form.get("message") ?? "").trim(),
     };
 
-    if (!payload.name || !payload.email || !payload.message) {
+    if (!payload.firstName || !payload.email || !payload.message) {
       setStatus("error");
       setErrorMsg("Please add your name, email, and a short message — that's all we need to reply.");
       return;
@@ -65,15 +68,15 @@ export default function Contact() {
   }
 
   return (
-    <section id="talk" className="relative bg-surface-base" aria-label="Talk to us">
-      <div className="container-page pt-section-t pb-section-b">
+    <section id="talk" className="command-section" aria-label="Talk to us">
+      <div className="signal-grid" aria-hidden="true" />
+      <div className="container-page relative z-10 pt-section-t pb-section-b">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-s7">
           {/* Left column — invitation */}
           <div className="md:col-span-5">
-            <div className="eyebrow">Talk</div>
+            <div className="eyebrow">Discovery console</div>
             <h2 className="mt-s4 text-fs-h2 font-display font-bold text-ink-strong">
-              Tell us what you&apos;re trying to{" "}
-              <span className="text-brand-gradient">unblock.</span>
+              Tell us what needs to become <span className="text-brand-gradient">a working system.</span>
             </h2>
             <p className="mt-s5 text-fs-body-lg text-ink-body max-w-prose">
               A short message is enough. We reply within one business day with
@@ -107,9 +110,16 @@ export default function Contact() {
           <form
             onSubmit={onSubmit}
             noValidate
-            className="md:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-s4 content-start"
+            className="command-surface scanline md:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-s4 content-start rounded-xl p-s5 md:p-s6"
             aria-busy={status === "sending"}
           >
+            <div className="sm:col-span-2 mb-s2 flex items-center justify-between gap-s4 border-b border-surface-line pb-s4">
+              <div>
+                <div className="eyebrow">Project intake</div>
+                <p className="mt-s2 text-fs-caption text-ink-muted">A focused brief is enough to begin.</p>
+              </div>
+              <span className="hidden h-s2 w-s8 rounded-pill bg-[linear-gradient(90deg,var(--brand-grad-start),var(--brand-grad-mid),var(--brand-grad-end))] sm:block" aria-hidden="true" />
+            </div>
             <Field
               label="Your name"
               name="name"
@@ -185,7 +195,7 @@ export default function Contact() {
                     role="status"
                   >
                     <Check size={16} />
-                    Sent. We&apos;ll reply within one business day.
+                    Request submitted. We&apos;ll reply within one business day.
                   </motion.p>
                 )}
                 {status === "error" && (

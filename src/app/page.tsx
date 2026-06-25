@@ -16,8 +16,7 @@
 "use client";
 
 import Navbar from "@/components/Navbar";
-import Showcase from "@/components/Showcase";
-import Promise from "@/components/Promise";
+import CommandHero from "@/components/CommandHero";
 import ServicesList from "@/components/ServicesList";
 import Stats from "@/components/Stats";
 import Who from "@/components/Who";
@@ -30,8 +29,7 @@ export default function Home() {
       <Navbar />
 
       <div className="relative z-10">
-        <Showcase />
-        <Promise />
+        <CommandHero />
         <ServicesList />
         <Stats />
         <Who />

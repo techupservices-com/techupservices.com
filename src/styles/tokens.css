@@ -33,6 +33,15 @@
   --focus-ring:       #14131A;
   --focus-ring-offset: var(--surface-base);
 
+  /* Command surfaces — dark cinematic layer used for the rebuild sections. */
+  --command-base:     #0B0D14;
+  --command-raised:   #14171F;
+  --command-sunken:   #090A10;
+  --command-line:     #1F2633;
+  --command-ink:      #F5F3EE;
+  --command-body:     #C8C5BE;
+  --command-muted:    #8C8A85;
+
   /* ----------------------------------------------------------
    * Type — fluid scale via clamp() (design.md §1)
    * Lower bound = mobile (375px), upper = desktop (1440px)

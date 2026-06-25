@@ -167,6 +167,73 @@
   .input-field::placeholder { color: var(--ink-faint); }
   .input-field:hover { border-color: var(--ink-muted); }
   .input-field:focus { border-color: var(--ink-strong); outline: none; background: var(--surface-base); }
+
+  .command-section {
+    position: relative;
+    overflow: hidden;
+    --surface-base: var(--command-base);
+    --surface-raised: var(--command-raised);
+    --surface-sunken: var(--command-sunken);
+    --surface-line: var(--command-line);
+    --ink-strong: var(--command-ink);
+    --ink-body: var(--command-body);
+    --ink-muted: var(--command-muted);
+    --ink-faint: color-mix(in srgb, var(--command-muted) 64%, transparent);
+    background:
+      radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--brand-grad-mid) 18%, transparent), transparent 34rem),
+      linear-gradient(180deg, var(--surface-base), var(--surface-sunken));
+  }
+
+  .command-surface {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--surface-line);
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--surface-raised) 92%, transparent), color-mix(in srgb, var(--surface-base) 88%, transparent)),
+      radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--brand-grad-start) 18%, transparent), transparent 22rem);
+    box-shadow: var(--shadow-2);
+  }
+
+  .signal-grid {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--ink-faint) 16%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--ink-faint) 16%, transparent) 1px, transparent 1px);
+    background-size: 4rem 4rem;
+    mask-image: radial-gradient(circle at 50% 45%, black, transparent 72%);
+    opacity: 0.42;
+  }
+
+  .scanline::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--brand-grad-start) 20%, transparent), transparent);
+    transform: translateY(-100%);
+    animation: command-scan var(--dur-ambient) var(--ease-standard) infinite;
+    opacity: 0.45;
+  }
+}
+
+@keyframes command-scan {
+  0% { transform: translateY(-100%); }
+  42%, 100% { transform: translateY(100%); }
+}
+
+@keyframes command-orbit {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes command-pulse {
+  0%, 100% { opacity: 0.36; transform: scaleX(0.72); }
+  50% { opacity: 1; transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scanline::after { animation: none; opacity: 0; }
 }
 
 /* ============================================================
