@@ -50,17 +50,17 @@ function ServiceStackCard({
 }) {
   const ref = useRef<HTMLLIElement>(null);
   const reduce = useReducedMotion();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 82%", "end 22%"] });
-  const targetScale = 1 - (total - 1 - index) * 0.025;
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 82%", "end start"] });
+  const targetScale = 1 - (total - 1 - index) * 0.03;
   const scale = useTransform(scrollYProgress, [0, 1], [1, targetScale]);
   const style = {
     ["--accent" as string]: service.themeColor,
-    ["--stack-top" as string]: "var(--space-5)",
+    ["--stack-top" as string]: `calc(var(--space-16) + ${index} * var(--space-4))`,
     zIndex: index + 1,
   } as CSSProperties;
 
   return (
-    <li ref={ref} className="min-h-dvh pb-s5">
+    <li ref={ref} className="h-[85vh] md:h-[88vh]">
       <motion.article
         style={{ ...style, scale: reduce ? 1 : scale }}
         initial={{ opacity: 0, filter: "blur(10px)" }}
@@ -76,7 +76,7 @@ function ServiceStackCard({
           <div className="absolute left-s5 top-s5 h-s2 w-s10 rounded-pill bg-[color:var(--accent)] opacity-80 shadow-2" />
         </div>
 
-        <div className="relative z-10 grid min-h-[calc(82dvh-var(--space-10))] content-between gap-s7 md:min-h-[calc(78dvh-var(--space-10))]">
+        <div className="relative z-10 grid min-h-[calc(78dvh-var(--space-10))] content-between gap-s7 md:min-h-[calc(76dvh-var(--space-10))]">
           <div className="flex items-start justify-between gap-s4">
             <div className="eyebrow text-ink-muted">Operating layer</div>
             <div className="font-display text-fs-caption font-bold tabular-nums text-ink-faint">
