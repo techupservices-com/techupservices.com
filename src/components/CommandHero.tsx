@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import { motion } from "framer-motion";
 import { ArrowDown, CalendarDays } from "lucide-react";
 import { services } from "@/data/services";
@@ -19,13 +19,13 @@ const SERVICE_COPY: Record<string, string> = {
 };
 
 const POSITIONS = [
-  { left: "20%", top: "32%" },
-  { left: "50%", top: "20%" },
-  { left: "80%", top: "32%" },
-  { left: "78%", top: "59%" },
-  { left: "62%", top: "75%" },
-  { left: "38%", top: "75%" },
-  { left: "22%", top: "59%" },
+  { left: "20%", top: "26%" },
+  { left: "50%", top: "22%" },
+  { left: "80%", top: "26%" },
+  { left: "20%", top: "48%" },
+  { left: "80%", top: "48%" },
+  { left: "20%", top: "70%" },
+  { left: "80%", top: "70%" },
 ] as const;
 
 type Point = { x: number; y: number };
@@ -129,8 +129,6 @@ function RevealAtmosphere({ active, entered }: { active: number; entered: boolea
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_var(--cursor-x)_var(--cursor-y),color-mix(in_srgb,var(--accent)_30%,transparent)_0%,color-mix(in_srgb,var(--brand-grad-mid)_18%,transparent)_32%,transparent_68%)]" />
       <div className="absolute inset-0 opacity-50 [background-image:linear-gradient(color-mix(in_srgb,var(--accent)_20%,transparent)_1px,transparent_1px),linear-gradient(90deg,color-mix(in_srgb,var(--brand-grad-start)_16%,transparent)_1px,transparent_1px)] [background-size:48px_48px]" />
-      <div className="absolute left-1/2 top-1/2 h-[34rem] w-[34rem] -translate-x-1/2 -translate-y-1/2 rounded-pill border border-[color:var(--accent)] opacity-30" />
-      <div className="absolute left-1/2 top-1/2 h-[22rem] w-[22rem] -translate-x-1/2 -translate-y-1/2 rounded-pill border border-brand-start opacity-30" />
       {!entered && <div className="absolute inset-0 bg-surface-base/70" />}
     </div>
   );
@@ -235,29 +233,31 @@ function ServiceAtlasCard({
   selected: boolean;
   onActivate: () => void;
 }) {
+  function onPointerMove(event: ReactPointerEvent<HTMLButtonElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    event.currentTarget.style.setProperty("--card-x", `${event.clientX - rect.left}px`);
+    event.currentTarget.style.setProperty("--card-y", `${event.clientY - rect.top}px`);
+  }
+
   return (
     <button
       type="button"
       onPointerEnter={onActivate}
+      onPointerMove={onPointerMove}
       onFocus={onActivate}
       onClick={onActivate}
-      className={`service-atlas-card group min-h-[7.5rem] w-[18.75rem] -translate-x-1/2 -translate-y-1/2 rounded-xl p-s5 text-left transition-all duration-slow ease-emphasized focus-visible:border-[color:var(--accent)] ${
+      className={`service-atlas-card group min-h-[7.5rem] w-[clamp(14rem,19vw,18.75rem)] -translate-x-1/2 -translate-y-1/2 rounded-xl p-s5 text-left transition-all duration-slow ease-emphasized focus-visible:border-[color:var(--accent)] ${
         selected ? "is-active scale-[1.04]" : "opacity-55 hover:opacity-100"
       }`}
       style={{ ["--accent" as string]: service.themeColor } as CSSProperties}
       aria-pressed={selected}
     >
-      <span className="mb-s4 block h-px w-s8 bg-[color:var(--accent)] opacity-55 transition-all duration-slow group-hover:w-s9 group-hover:opacity-90" aria-hidden="true" />
       <span className="block max-w-[15rem] font-display text-fs-h4 font-bold leading-[1.02] tracking-[var(--tracking-tight)] text-ink-strong">
         {service.name}
       </span>
       <span className="mt-s3 block max-w-[14.5rem] text-fs-body font-normal leading-snug text-ink-body">
         {service.tagline}
       </span>
-      <span
-        className={`absolute left-1/2 top-1/2 h-px w-[9rem] origin-left bg-[color:var(--accent)] transition-opacity duration-base ${selected ? "opacity-70" : "opacity-0 group-hover:opacity-40"}`}
-        aria-hidden="true"
-      />
     </button>
   );
 }
@@ -298,10 +298,9 @@ function CyberCore({ active }: { active: number }) {
       style={{ ["--accent" as string]: service.themeColor } as CSSProperties}
       aria-hidden="true"
     >
-      <div className="absolute inset-0 rounded-pill border border-surface-line opacity-60" style={{ animation: "command-orbit 30s linear infinite" }} />
-      <div className="absolute inset-[10%] rounded-pill border border-brand-mid/40 opacity-80" style={{ animation: "command-orbit 22s linear infinite reverse" }} />
-      <div className="absolute inset-[22%] rounded-pill border border-[color:var(--accent)] opacity-50" />
-      <div className="absolute inset-[29%] rounded-[42%_58%_46%_54%] border border-surface-line bg-surface-raised/35 shadow-3" />
+      <div className="absolute inset-[10%] rotate-45 border border-surface-line opacity-35" />
+      <div className="absolute inset-[24%] -rotate-12 rounded-xl border border-[color:var(--accent)] bg-surface-raised/20 opacity-55 shadow-3" />
+      <div className="absolute inset-[34%] rounded-[42%_58%_46%_54%] border border-surface-line bg-surface-raised/35 shadow-3" />
       <div className="relative h-[42%] w-[38%] rounded-[45%_45%_38%_38%] border border-[color:var(--accent)] bg-surface-sunken shadow-3">
         <div className="absolute left-[24%] top-[32%] h-s3 w-s3 rounded-pill bg-brand-start shadow-2" />
         <div className="absolute right-[24%] top-[32%] h-s3 w-s3 rounded-pill bg-brand-mid shadow-2" />
