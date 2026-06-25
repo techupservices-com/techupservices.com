@@ -1,13 +1,13 @@
 /**
  * Homepage — TechUpServices.
  *
- * Section order (per the rebuild brief: services-first showcase):
- *   01  Showcase  — brand signature: scroll-scrubbed canvas with narrative beats
- *   02  Promise   — single-claim block: one headline, one primary CTA, one secondary
- *   03  Services  — vertical numbered system: 7 services, sticky-left rail
- *   04  Proof     — 4 brand stats as a typographic row (not icon cards)
- *   05  Who       — short paragraph + address + socials
- *   06  Talk      — contact form (left invitation, right form)
+ * Section order:
+ *   01  Service Atlas — cursor-reveal cyberpunk hero with all services around the core
+ *   02  Signal Statement — cinematic narrative bridge
+ *   03  Services — living system modules
+ *   04  Proof — proof telemetry
+ *   05  Who — studio coordinates
+ *   06  Talk — discovery console
  *
  * Per design.md §6: section order follows narrative, not the template.
  * Per brand.md: copy, voice, CTA library, and proof points are verbatim from the contract.
@@ -17,6 +17,7 @@
 
 import Navbar from "@/components/Navbar";
 import CommandHero from "@/components/CommandHero";
+import SignalStatement from "@/components/SignalStatement";
 import ServicesList from "@/components/ServicesList";
 import Stats from "@/components/Stats";
 import Who from "@/components/Who";
@@ -30,6 +31,7 @@ export default function Home() {
 
       <div className="relative z-10">
         <CommandHero />
+        <SignalStatement />
         <ServicesList />
         <Stats />
         <Who />

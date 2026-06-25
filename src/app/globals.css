@@ -232,8 +232,61 @@
   50% { opacity: 1; transform: scaleX(1); }
 }
 
+.cyber-hero {
+  --surface-base: var(--command-base);
+  --surface-raised: var(--command-raised);
+  --surface-sunken: var(--command-sunken);
+  --surface-line: var(--command-line);
+  --ink-strong: var(--command-ink);
+  --ink-body: var(--command-body);
+  --ink-muted: var(--command-muted);
+  --ink-faint: color-mix(in srgb, var(--command-muted) 64%, transparent);
+}
+
+.cyber-reveal-layer {
+  -webkit-mask-image: radial-gradient(
+    circle var(--spotlight-r) at var(--cursor-x) var(--cursor-y),
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 1) 38%,
+    rgba(0, 0, 0, 0.72) 56%,
+    rgba(0, 0, 0, 0.28) 76%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  mask-image: radial-gradient(
+    circle var(--spotlight-r) at var(--cursor-x) var(--cursor-y),
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 1) 38%,
+    rgba(0, 0, 0, 0.72) 56%,
+    rgba(0, 0, 0, 0.28) 76%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+
+.cyber-watermark {
+  font-size: clamp(4.5rem, 18vw, 18rem);
+  color: transparent;
+  background: radial-gradient(circle, color-mix(in srgb, var(--brand-grad-start) 0%, transparent), color-mix(in srgb, var(--ink-strong) 16%, transparent) 72%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  opacity: 0.58;
+}
+
+@media (max-width: 767px) {
+  .cyber-reveal-layer {
+    -webkit-mask-image: radial-gradient(circle at 50% 38%, rgba(0, 0, 0, 1), transparent 72%);
+    mask-image: radial-gradient(circle at 50% 38%, rgba(0, 0, 0, 1), transparent 72%);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .scanline::after { animation: none; opacity: 0; }
+  .cyber-reveal-layer {
+    -webkit-mask-image: radial-gradient(circle at 50% 42%, rgba(0, 0, 0, 1), transparent 76%);
+    mask-image: radial-gradient(circle at 50% 42%, rgba(0, 0, 0, 1), transparent 76%);
+  }
 }
 
 /* ============================================================

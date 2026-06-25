@@ -1,196 +1,282 @@
 "use client";
 
-import { useMemo, useRef, useState, type CSSProperties } from "react";
-import { motion, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { motion } from "framer-motion";
 import { ArrowDown, CalendarDays } from "lucide-react";
 import { services } from "@/data/services";
 import { DUR, EASE, useMotionSafe } from "@/lib/motion";
 
+const SPOTLIGHT_R = 260;
+
 const SERVICE_COPY: Record<string, string> = {
-  "ai-automation": "Automate repetitive workflows and reclaim operational hours with systems that keep moving after your team logs off.",
-  "social-media": "Build a sharper content rhythm that turns attention into qualified demand across the channels your buyers already watch.",
-  "website-development": "Ship a fast, premium digital storefront that explains the offer, earns trust, and converts serious visitors.",
-  "mobile-app": "Create mobile products that keep customers engaged beyond the first tap, with interaction quality that feels native.",
-  "whatsapp-automation": "Automate lead follow-up, support, and customer communication inside the channel your customers already use.",
-  "digital-marketing": "Connect campaigns, content, and conversion signals so growth becomes measurable instead of hopeful.",
-  "tech-consulting": "Make the right technical calls before expensive mistakes compound into fragile systems and missed quarters.",
+  "ai-automation": "Reclaim operational hours with workflows that keep moving after your team logs off.",
+  "social-media": "Build a sharper content rhythm that turns attention into qualified demand.",
+  "website-development": "Ship a premium storefront that earns trust before the first call.",
+  "mobile-app": "Create mobile products that stay useful beyond the first tap.",
+  "whatsapp-automation": "Turn follow-ups, support, and lead routing into an owned communication system.",
+  "digital-marketing": "Connect campaigns, content, and conversion signals into measurable growth.",
+  "tech-consulting": "Make the right technical calls before fragile systems become expensive.",
 };
 
+const POSITIONS = [
+  { left: "19%", top: "30%" },
+  { left: "50%", top: "19%" },
+  { left: "80%", top: "30%" },
+  { left: "84%", top: "58%" },
+  { left: "64%", top: "76%" },
+  { left: "35%", top: "76%" },
+  { left: "16%", top: "58%" },
+] as const;
+
+type Point = { x: number; y: number };
+
 export default function CommandHero() {
-  const ref = useRef<HTMLElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const mouse = useRef<Point>({ x: -999, y: -999 });
+  const smooth = useRef<Point>({ x: -999, y: -999 });
+  const rafRef = useRef<number | null>(null);
+  const [cursor, setCursor] = useState<Point>({ x: -999, y: -999 });
   const [active, setActive] = useState(0);
+  const [entered, setEntered] = useState(false);
   const { shouldReduce } = useMotionSafe();
+  const reduceMotion = Boolean(shouldReduce);
 
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start start", "end end"],
-  });
+  useEffect(() => {
+    if (reduceMotion) return;
 
-  const serviceProgress = useTransform(scrollYProgress, [0.06, 0.92], [0, services.length - 1]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.86, 1], [1, 1, 0]);
-  const coreScale = useTransform(scrollYProgress, [0, 0.5, 1], [0.94, 1.08, 0.98]);
-  const railY = useTransform(scrollYProgress, [0, 0.18], [24, 0]);
+    const onPointerMove = (event: PointerEvent) => {
+      if (event.pointerType === "touch") return;
+      mouse.current = { x: event.clientX, y: event.clientY };
+      setEntered(true);
+    };
 
-  useMotionValueEvent(serviceProgress, "change", (value) => {
-    const next = Math.min(services.length - 1, Math.max(0, Math.round(value)));
-    setActive(next);
-  });
+    const tick = () => {
+      smooth.current.x += (mouse.current.x - smooth.current.x) * 0.1;
+      smooth.current.y += (mouse.current.y - smooth.current.y) * 0.1;
+      setCursor({ x: smooth.current.x, y: smooth.current.y });
+      rafRef.current = requestAnimationFrame(tick);
+    };
+
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [reduceMotion]);
 
   const service = services[active];
-  const activeStyle = useMemo(
-    () => ({ ["--accent" as string]: service.themeColor } as CSSProperties),
-    [service.themeColor],
+  const style = useMemo(
+    () => ({
+      ["--accent" as string]: service.themeColor,
+      ["--cursor-x" as string]: `${cursor.x}px`,
+      ["--cursor-y" as string]: `${cursor.y}px`,
+      ["--spotlight-r" as string]: `${SPOTLIGHT_R}px`,
+    } as CSSProperties),
+    [cursor.x, cursor.y, service.themeColor],
   );
-
-  if (shouldReduce) {
-    return (
-      <section className="command-section min-h-dvh pt-s10 pb-s8" aria-label="TechUpServices command system">
-        <div className="signal-grid" aria-hidden="true" />
-        <div className="container-page relative z-10 grid gap-s7 lg:grid-cols-[1fr_1.15fr] lg:items-center">
-          <HeroCopy service={service} activeStyle={activeStyle} compact />
-          <CommandCore active={active} activeStyle={activeStyle} />
-          <ServiceDock active={active} onSelect={setActive} />
-        </div>
-      </section>
-    );
-  }
 
   return (
     <section
-      ref={ref}
-      className="relative bg-surface-base"
-      style={{ height: "760vh" }}
-      aria-label="TechUpServices command system"
+      ref={sectionRef}
+      className="cyber-hero relative h-dvh min-h-[720px] overflow-hidden bg-surface-base text-ink-strong"
+      style={style}
+      aria-label="TechUpServices service atlas"
     >
-      <motion.div className="command-section sticky top-0 h-dvh overflow-hidden" style={{ opacity: heroOpacity }}>
-        <div className="signal-grid" aria-hidden="true" />
-        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-          <div className="absolute -top-s10 left-[8%] h-s11 w-s11 rounded-pill blur-3xl opacity-40 bg-brand-start" />
-          <div className="absolute top-[18%] right-[4%] h-s11 w-s11 rounded-pill blur-3xl opacity-35 bg-brand-end" />
-          <div className="absolute bottom-[-12%] left-[35%] h-s11 w-s11 rounded-pill blur-3xl opacity-30 bg-brand-mid" />
+      <BaseAtmosphere />
+      <RevealAtmosphere active={active} entered={entered || reduceMotion} />
+
+      <div className="absolute inset-x-0 top-[12%] z-20 pointer-events-none px-gutter text-center">
+        <div className="cyber-watermark font-display font-bold uppercase leading-none tracking-[-0.08em]">
+          Infrastructure
+        </div>
+      </div>
+
+      <div className="relative z-30 flex h-full flex-col px-gutter pb-s7 pt-s10">
+        <div className="flex flex-1 items-center justify-center">
+          <CyberCore active={active} />
+          <ServiceConstellation active={active} setActive={setActive} />
         </div>
 
-        <div className="container-page relative z-10 grid h-full grid-cols-1 content-center gap-s7 pt-s9 pb-s8 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:items-center lg:content-normal">
-          <HeroCopy service={service} activeStyle={activeStyle} />
-          <motion.div style={{ scale: coreScale }} className="relative order-first min-h-[42dvh] lg:order-none lg:min-h-0">
-            <CommandCore active={active} activeStyle={activeStyle} />
-          </motion.div>
-          <motion.div style={{ y: railY }} className="lg:col-span-2">
-            <ServiceDock active={active} onSelect={setActive} />
-          </motion.div>
+        <MobileServiceSelector active={active} setActive={setActive} />
+
+        <div className="grid gap-s5 md:grid-cols-[1fr_0.82fr] md:items-end">
+          <HeroStatement />
+          <ActiveServicePanel service={service} index={active} />
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 }
 
-function HeroCopy({ service, activeStyle, compact = false }: { service: (typeof services)[number]; activeStyle: CSSProperties; compact?: boolean }) {
+function BaseAtmosphere() {
   return (
-    <div className="relative z-10" style={activeStyle}>
-      <div className="eyebrow text-ink-muted">TechUpServices command system</div>
-      <h1 className="mt-s4 max-w-4xl font-display text-fs-display font-bold leading-none text-ink-strong">
-        Automate. Build. <span className="text-brand-gradient">Scale.</span>
-      </h1>
+    <div className="absolute inset-0 z-0" aria-hidden="true">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_44%,color-mix(in_srgb,var(--brand-grad-mid)_20%,transparent),transparent_24rem),linear-gradient(180deg,var(--surface-base),var(--surface-sunken))]" />
+      <div className="absolute inset-0 opacity-[0.08] [background-image:radial-gradient(var(--ink-strong)_1px,transparent_1px)] [background-size:24px_24px]" />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,color-mix(in_srgb,var(--surface-base)_44%,transparent)_58%,var(--surface-base)_100%)]" />
+    </div>
+  );
+}
+
+function RevealAtmosphere({ active, entered }: { active: number; entered: boolean }) {
+  const activeService = services[active];
+  return (
+    <div
+      className="cyber-reveal-layer absolute inset-0 z-10 pointer-events-none opacity-95"
+      style={{ ["--accent" as string]: activeService.themeColor } as CSSProperties}
+      aria-hidden="true"
+    >
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_var(--cursor-x)_var(--cursor-y),color-mix(in_srgb,var(--accent)_30%,transparent)_0%,color-mix(in_srgb,var(--brand-grad-mid)_18%,transparent)_32%,transparent_68%)]" />
+      <div className="absolute inset-0 opacity-50 [background-image:linear-gradient(color-mix(in_srgb,var(--accent)_20%,transparent)_1px,transparent_1px),linear-gradient(90deg,color-mix(in_srgb,var(--brand-grad-start)_16%,transparent)_1px,transparent_1px)] [background-size:48px_48px]" />
+      <div className="absolute left-1/2 top-1/2 h-[34rem] w-[34rem] -translate-x-1/2 -translate-y-1/2 rounded-pill border border-[color:var(--accent)] opacity-30" />
+      <div className="absolute left-1/2 top-1/2 h-[22rem] w-[22rem] -translate-x-1/2 -translate-y-1/2 rounded-pill border border-brand-start opacity-30" />
+      {!entered && <div className="absolute inset-0 bg-surface-base/70" />}
+    </div>
+  );
+}
+
+function HeroStatement() {
+  return (
+    <div className="max-w-4xl">
       <motion.div
-        key={service.id}
-        initial={{ opacity: 0, y: 18, filter: "blur(10px)" }}
+        initial={{ opacity: 0, y: 28, filter: "blur(12px)" }}
         animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-        transition={{ duration: DUR.slow, ease: EASE.emphasized }}
-        className="mt-s6 max-w-2xl"
+        transition={{ duration: 1.1, ease: EASE.emphasized, delay: 0.15 }}
+        className="eyebrow text-ink-muted"
       >
-        <div className="flex items-center gap-s3 text-fs-caption uppercase tracking-[var(--tracking-eyebrow)] text-ink-muted">
-          <span className="h-px w-s7 origin-left" style={{ background: "var(--accent)", animation: "command-pulse var(--dur-slow) var(--ease-standard) infinite" }} />
-          Active module
-        </div>
-        <h2 className="mt-s3 font-display text-fs-h2 font-bold text-ink-strong">{service.name}</h2>
-        <p className="mt-s4 text-fs-body-lg text-ink-body">{SERVICE_COPY[service.id] ?? service.detailsSection.description}</p>
+        Premium AI automation and digital infrastructure
       </motion.div>
-      <div className="mt-s7 flex flex-wrap items-center gap-s4">
+      <motion.h1
+        initial={{ opacity: 0, y: 32, filter: "blur(14px)" }}
+        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        transition={{ duration: 1.15, ease: EASE.emphasized, delay: 0.28 }}
+        className="mt-s4 font-display text-fs-display font-bold leading-[0.88] tracking-[var(--tracking-display)] text-ink-strong"
+      >
+        Automate.<br />Build. <span className="text-brand-gradient">Scale.</span>
+      </motion.h1>
+      <motion.p
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.9, ease: EASE.emphasized, delay: 0.58 }}
+        className="mt-s5 max-w-2xl text-fs-body-lg text-ink-body"
+      >
+        Move the cursor across the atlas to reveal the service systems TechUpServices builds for founders, operators, and growth teams.
+      </motion.p>
+      <motion.div
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: EASE.emphasized, delay: 0.76 }}
+        className="mt-s6 flex flex-wrap items-center gap-s4"
+      >
         <a href="#talk" className="btn-primary">
           <CalendarDays size={18} />
           Schedule a discovery call
         </a>
-        {!compact && (
-          <a href="#services" className="btn-secondary">
-            Explore Services
-            <ArrowDown size={16} />
-          </a>
-        )}
-      </div>
+        <a href="#services" className="btn-secondary">
+          Explore Services
+          <ArrowDown size={16} />
+        </a>
+      </motion.div>
     </div>
   );
 }
 
-function CommandCore({ active, activeStyle }: { active: number; activeStyle: CSSProperties }) {
+function ActiveServicePanel({ service, index }: { service: (typeof services)[number]; index: number }) {
   return (
-    <div className="relative mx-auto flex aspect-square w-full max-w-[42rem] items-center justify-center" style={activeStyle} aria-hidden="true">
-      <div className="absolute inset-[6%] rounded-pill border border-surface-line opacity-70" style={{ animation: "command-orbit 32s linear infinite" }} />
-      <div className="absolute inset-[13%] rounded-pill border border-surface-line opacity-60" style={{ animation: "command-orbit 24s linear infinite reverse" }} />
-      <div className="absolute inset-[21%] rounded-pill border border-[color:var(--accent)] opacity-45" style={{ animation: "command-orbit 18s linear infinite" }} />
+    <motion.aside
+      key={service.id}
+      initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      transition={{ duration: DUR.slow, ease: EASE.emphasized }}
+      className="justify-self-start border-l border-surface-line pl-s5 md:justify-self-end md:max-w-md"
+      style={{ ["--accent" as string]: service.themeColor } as CSSProperties}
+    >
+      <div className="flex items-center gap-s3 text-fs-caption uppercase tracking-[var(--tracking-eyebrow)] text-ink-muted">
+        <span className="h-px w-s7 bg-[color:var(--accent)]" />
+        Module {String(index + 1).padStart(2, "0")}
+      </div>
+      <h2 className="mt-s3 font-display text-fs-h3 font-bold text-ink-strong">{service.name}</h2>
+      <p className="mt-s3 text-fs-body text-ink-body">{SERVICE_COPY[service.id]}</p>
+    </motion.aside>
+  );
+}
+
+function ServiceConstellation({ active, setActive }: { active: number; setActive: (index: number) => void }) {
+  return (
+    <ol className="absolute inset-0 z-40 hidden md:block" aria-label="Service discovery atlas">
       {services.map((service, index) => {
-        const angle = (index / services.length) * Math.PI * 2 - Math.PI / 2;
-        const radius = 43;
-        const x = 50 + Math.cos(angle) * radius;
-        const y = 50 + Math.sin(angle) * radius;
         const selected = index === active;
+        const position = POSITIONS[index];
         return (
-          <div
-            key={service.id}
-            className="absolute grid h-s7 w-s7 place-items-center rounded-pill border text-fs-caption font-semibold transition-all duration-slow ease-emphasized"
-            style={{
-              left: `${x}%`,
-              top: `${y}%`,
-              transform: "translate(-50%, -50%)",
-              color: selected ? "var(--surface-base)" : "var(--ink-muted)",
-              background: selected ? service.themeColor : "var(--surface-raised)",
-              borderColor: selected ? service.themeColor : "var(--surface-line)",
-              boxShadow: selected ? `0 0 44px ${service.themeColor}` : "none",
-            }}
-          >
-            {String(index + 1).padStart(2, "0")}
-          </div>
+          <li key={service.id} className="absolute" style={position}>
+            <button
+              type="button"
+              onPointerEnter={() => setActive(index)}
+              onFocus={() => setActive(index)}
+              className="group min-h-[48px] -translate-x-1/2 -translate-y-1/2 rounded-pill border border-surface-line bg-surface-base/20 px-s4 py-s2 text-left text-fs-caption text-ink-muted transition-all duration-base ease-standard hover:border-[color:var(--accent)] hover:text-ink-strong focus-visible:border-[color:var(--accent)]"
+              style={{ ["--accent" as string]: service.themeColor } as CSSProperties}
+            >
+              <span className="block font-display font-bold tabular-nums opacity-60">{String(index + 1).padStart(2, "0")}</span>
+              <span className="block max-w-[13rem] whitespace-nowrap font-medium tracking-[-0.02em]">{service.name}</span>
+              <span
+                className={`absolute left-1/2 top-1/2 h-px w-[7rem] origin-left bg-[color:var(--accent)] transition-opacity duration-base ${selected ? "opacity-70" : "opacity-0 group-hover:opacity-50"}`}
+                aria-hidden="true"
+              />
+            </button>
+          </li>
         );
       })}
-      <div className="command-surface scanline relative grid aspect-square w-[52%] place-items-center rounded-pill">
-        <div className="absolute inset-[13%] rounded-pill border border-[color:var(--accent)] opacity-55" />
-        <div className="absolute inset-[26%] rounded-pill bg-[color:var(--accent)] opacity-20 blur-xl" />
-        <div className="relative grid h-[45%] w-[45%] place-items-center rounded-pill border border-surface-line bg-surface-sunken shadow-3">
-          <div className="h-[34%] w-[34%] rounded-pill bg-[color:var(--accent)] shadow-2" />
-          <div className="absolute bottom-[22%] h-px w-[56%] bg-surface-line" />
-          <div className="absolute top-[28%] flex gap-s2">
-            <span className="h-s2 w-s2 rounded-pill bg-brand-start" />
-            <span className="h-s2 w-s2 rounded-pill bg-brand-mid" />
-          </div>
-        </div>
+    </ol>
+  );
+}
+
+function MobileServiceSelector({ active, setActive }: { active: number; setActive: (index: number) => void }) {
+  return (
+    <div className="relative z-50 -mt-s4 mb-s5 md:hidden" aria-label="Select a service">
+      <div className="flex gap-s2 overflow-x-auto pb-s2">
+        {services.map((service, index) => {
+          const selected = active === index;
+          return (
+            <button
+              key={service.id}
+              type="button"
+              onClick={() => setActive(index)}
+              className="min-h-[44px] flex-none rounded-pill border px-s4 text-fs-caption transition-colors duration-base"
+              style={{
+                borderColor: selected ? service.themeColor : "var(--surface-line)",
+                color: selected ? "var(--ink-strong)" : "var(--ink-muted)",
+                background: selected ? "var(--surface-raised)" : "transparent",
+              }}
+            >
+              {service.name}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
 }
 
-function ServiceDock({ active, onSelect }: { active: number; onSelect: (index: number) => void }) {
+function CyberCore({ active }: { active: number }) {
+  const service = services[active];
   return (
-    <div className="command-surface rounded-xl p-s3" aria-label="Service modules">
-      <ol className="grid grid-cols-2 gap-s2 md:grid-cols-4 lg:grid-cols-7">
-        {services.map((service, index) => {
-          const selected = index === active;
-          return (
-            <li key={service.id}>
-              <button
-                type="button"
-                onClick={() => onSelect(index)}
-                className="group min-h-[64px] w-full rounded-lg border p-s3 text-left transition-colors duration-base ease-standard"
-                style={{
-                  borderColor: selected ? service.themeColor : "var(--surface-line)",
-                  background: selected ? "color-mix(in srgb, var(--surface-raised) 82%, transparent)" : "transparent",
-                }}
-              >
-                <span className="block font-display text-fs-caption font-bold tabular-nums text-ink-faint">{String(index + 1).padStart(2, "0")}</span>
-                <span className="mt-s1 block text-fs-caption font-medium text-ink-strong">{service.name}</span>
-              </button>
-            </li>
-          );
-        })}
-      </ol>
+    <div
+      className="relative z-30 mx-auto grid aspect-square w-[min(72vw,32rem)] place-items-center md:w-[min(42vw,38rem)]"
+      style={{ ["--accent" as string]: service.themeColor } as CSSProperties}
+      aria-hidden="true"
+    >
+      <div className="absolute inset-0 rounded-pill border border-surface-line opacity-60" style={{ animation: "command-orbit 30s linear infinite" }} />
+      <div className="absolute inset-[10%] rounded-pill border border-brand-mid/40 opacity-80" style={{ animation: "command-orbit 22s linear infinite reverse" }} />
+      <div className="absolute inset-[22%] rounded-pill border border-[color:var(--accent)] opacity-50" />
+      <div className="absolute inset-[29%] rounded-[42%_58%_46%_54%] border border-surface-line bg-surface-raised/35 shadow-3" />
+      <div className="relative h-[42%] w-[38%] rounded-[45%_45%_38%_38%] border border-[color:var(--accent)] bg-surface-sunken shadow-3">
+        <div className="absolute left-[24%] top-[32%] h-s3 w-s3 rounded-pill bg-brand-start shadow-2" />
+        <div className="absolute right-[24%] top-[32%] h-s3 w-s3 rounded-pill bg-brand-mid shadow-2" />
+        <div className="absolute bottom-[27%] left-[28%] h-px w-[44%] bg-surface-line" />
+        <div className="absolute -bottom-[22%] left-1/2 h-[24%] w-[48%] -translate-x-1/2 rounded-b-xl border-x border-b border-surface-line bg-surface-raised/30" />
+      </div>
+      <div className="absolute inset-[36%] rounded-pill bg-[color:var(--accent)] opacity-20 blur-2xl" />
     </div>
   );
 }
