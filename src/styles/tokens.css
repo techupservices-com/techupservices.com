@@ -1,0 +1,161 @@
+/* ============================================================
+ * TechUpServices — Design Tokens
+ * Single source of truth. No raw hex, no raw px outside this file.
+ * Governed by design.md (tokens, scales, motion) + brand.md (palette).
+ * ============================================================ */
+
+:root {
+  /* ----------------------------------------------------------
+   * Color — three tiers (brand, surface, ink) + per-service accents
+   * Light mode defaults; .dark overrides below.
+   * ---------------------------------------------------------- */
+
+  /* Brand gradient — non-negotiable per brand.md §5.2 */
+  --brand-grad-start: #0891b2;   /* cyan-600 */
+  --brand-grad-mid:   #2563eb;   /* blue-600  */
+  --brand-grad-end:   #9333ea;   /* purple-600 */
+  --brand-grad: linear-gradient(110deg, var(--brand-grad-start) 0%, var(--brand-grad-mid) 50%, var(--brand-grad-end) 100%);
+
+  /* Surface — warm bone (NOT pure white, per design.md §3) */
+  --surface-base:     #F5F3EE;   /* bone */
+  --surface-raised:   #FAF8F3;   /* lighter bone for cards */
+  --surface-sunken:   #EDE9E0;   /* recessed inputs */
+  --surface-overlay:  rgba(245, 243, 238, 0.92); /* nav bar on scroll */
+  --surface-line:     #DFD9CC;   /* hairlines */
+
+  /* Ink — warm off-black for type (NOT slate, NOT pure black) */
+  --ink-strong:       #14131A;
+  --ink-body:         #3A3741;
+  --ink-muted:        #6B6770;
+  --ink-faint:        #9B97A0;
+
+  /* Focus — high-contrast ring, not the brand gradient */
+  --focus-ring:       #14131A;
+  --focus-ring-offset: var(--surface-base);
+
+  /* ----------------------------------------------------------
+   * Type — fluid scale via clamp() (design.md §1)
+   * Lower bound = mobile (375px), upper = desktop (1440px)
+   * Body min 16px on mobile per WCAG.
+   * ---------------------------------------------------------- */
+
+  --fs-eyebrow:  clamp(0.6875rem, 0.625rem + 0.25vw, 0.75rem);   /* 11 → 12 */
+  --fs-caption:  clamp(0.75rem,  0.6875rem + 0.25vw, 0.8125rem); /* 12 → 13 */
+  --fs-body:     clamp(1rem,     0.9375rem + 0.25vw, 1.0625rem); /* 16 → 17 */
+  --fs-body-lg:  clamp(1.125rem, 1rem + 0.5vw,        1.25rem);  /* 18 → 20 */
+  --fs-h4:       clamp(1.25rem,  1.0625rem + 0.75vw,  1.5rem);   /* 20 → 24 */
+  --fs-h3:       clamp(1.5rem,   1.125rem + 1.5vw,    2rem);     /* 24 → 32 */
+  --fs-h2:       clamp(2rem,     1.5rem + 2vw,        3.25rem);  /* 32 → 52 */
+  --fs-h1:       clamp(2.75rem,  1.75rem + 4vw,       5rem);     /* 44 → 80 */
+  --fs-display:  clamp(3.5rem,   2rem + 6vw,          7.5rem);   /* 56 → 120 */
+  --fs-numeral:  clamp(3rem,     2rem + 4vw,          5.5rem);   /* 48 → 88 — for Stats row */
+
+  --lh-tight:    1.05;
+  --lh-snug:     1.2;
+  --lh-normal:   1.5;
+  --lh-relaxed:  1.65;
+
+  --tracking-tight:   -0.02em;
+  --tracking-display: -0.03em;
+  --tracking-eyebrow: 0.12em;
+
+  /* ----------------------------------------------------------
+   * Spacing — 8pt grid (design.md §2)
+   * ---------------------------------------------------------- */
+  --space-1:  0.25rem;   /* 4  */
+  --space-2:  0.5rem;    /* 8  */
+  --space-3:  0.75rem;   /* 12 */
+  --space-4:  1rem;      /* 16 */
+  --space-5:  1.5rem;    /* 24 */
+  --space-6:  2rem;      /* 32 */
+  --space-7:  3rem;      /* 48 */
+  --space-8:  4rem;      /* 64 */
+  --space-9:  6rem;      /* 96 */
+  --space-10: 8rem;      /* 128 */
+  --space-11: 12rem;     /* 192 */
+
+  /* Asymmetric section padding — design.md §2 rejects symmetric py-32 */
+  --section-pt: clamp(5rem, 4rem + 4vw, 9rem);
+  --section-pb: clamp(4rem, 3rem + 3vw, 7rem);
+
+  /* Page gutter (mobile-first; container max-width below) */
+  --gutter:     clamp(1.25rem, 0.5rem + 3vw, 2rem);
+  --container:  76rem;   /* 1216px — narrower than 1280 to give edges room */
+
+  /* ----------------------------------------------------------
+   * Radii — restrained, NOT pill-everything
+   * ---------------------------------------------------------- */
+  --radius-sm:  0.375rem;  /* 6 — small chips */
+  --radius-md:  0.75rem;   /* 12 — inputs, buttons */
+  --radius-lg:  1.25rem;   /* 20 — cards */
+  --radius-xl:  2rem;      /* 32 — large surfaces */
+  --radius-pill: 999px;    /* only for genuine pills (eyebrows) */
+
+  /* ----------------------------------------------------------
+   * Shadows — restrained, single direction, soft
+   * ---------------------------------------------------------- */
+  --shadow-1: 0 1px 2px rgba(20, 19, 26, 0.04), 0 2px 6px rgba(20, 19, 26, 0.04);
+  --shadow-2: 0 2px 4px rgba(20, 19, 26, 0.05), 0 8px 24px rgba(20, 19, 26, 0.06);
+  --shadow-3: 0 4px 12px rgba(20, 19, 26, 0.08), 0 24px 48px rgba(20, 19, 26, 0.08);
+
+  /* ----------------------------------------------------------
+   * Motion — durations + easings (design.md §7)
+   * ---------------------------------------------------------- */
+  --dur-instant: 80ms;
+  --dur-fast:    180ms;
+  --dur-base:    240ms;
+  --dur-slow:    420ms;
+  --dur-reveal:  640ms;
+  --dur-ambient: 18s;
+
+  /* Forward-leaning easings — no springy overshoots by default */
+  --ease-standard:   cubic-bezier(0.2, 0.7, 0.2, 1);    /* default UI */
+  --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);     /* big reveals */
+  --ease-entry:      cubic-bezier(0, 0, 0.2, 1);        /* things coming in */
+  --ease-exit:       cubic-bezier(0.4, 0, 1, 1);        /* things leaving */
+}
+
+/* ============================================================
+ * Dark mode — invert tiers, keep brand gradient stable
+ * ============================================================ */
+.dark {
+  --surface-base:     #0B0D14;       /* off-black per design.md §3 (NOT #000) */
+  --surface-raised:   #14171F;
+  --surface-sunken:   #090A10;
+  --surface-overlay:  rgba(11, 13, 20, 0.88);
+  --surface-line:     #1F232E;
+
+  --ink-strong:       #F5F3EE;       /* bone-on-ink */
+  --ink-body:         #BFBCB4;
+  --ink-muted:        #8C8A85;
+  --ink-faint:        #5C5A56;
+
+  /* Brand gradient slightly brighter in dark mode for legibility */
+  --brand-grad-start: #22d3ee;       /* cyan-400 */
+  --brand-grad-mid:   #3b82f6;       /* blue-500 */
+  --brand-grad-end:   #9333ea;       /* purple-600 */
+
+  --focus-ring:       #F5F3EE;
+  --focus-ring-offset: var(--surface-base);
+
+  /* Shadows have no business in dark mode — fade them */
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-3: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================================
+ * Respect prefers-reduced-motion — kill ambient drifts only
+ * Per design.md §7 + brand.md §5.4
+ * ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-ambient: 0s;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
