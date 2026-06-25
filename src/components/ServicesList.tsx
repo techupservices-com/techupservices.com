@@ -53,16 +53,16 @@ function ServiceStackCard({
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start 82%", "end 22%"] });
   const targetScale = 1 - (total - 1 - index) * 0.025;
   const scale = useTransform(scrollYProgress, [0, 1], [1, targetScale]);
-  const y = useTransform(scrollYProgress, [0, 1], [0, -18]);
   const style = {
     ["--accent" as string]: service.themeColor,
-    ["--stack-top" as string]: `calc(var(--space-5) + ${index} * var(--space-2))`,
+    ["--stack-top" as string]: "var(--space-5)",
+    zIndex: index + 1,
   } as CSSProperties;
 
   return (
-    <li ref={ref} className="min-h-[82dvh] pb-s6 md:min-h-[86dvh]">
+    <li ref={ref} className="min-h-dvh pb-s5">
       <motion.article
-        style={{ ...style, scale: reduce ? 1 : scale, y: reduce ? 0 : y }}
+        style={{ ...style, scale: reduce ? 1 : scale }}
         initial={{ opacity: 0, filter: "blur(10px)" }}
         whileInView={{ opacity: 1, filter: "blur(0px)" }}
         viewport={{ once: true, amount: 0.22 }}

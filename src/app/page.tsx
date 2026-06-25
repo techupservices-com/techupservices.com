@@ -35,9 +35,7 @@ export default function Home() {
         <ScrollReveal y={22} amount={0.12}>
           <SignalStatement />
         </ScrollReveal>
-        <ScrollReveal y={22} amount={0.08}>
-          <ServicesList />
-        </ScrollReveal>
+        <ServicesList />
         <ScrollReveal y={22} amount={0.14}>
           <Stats />
         </ScrollReveal>
