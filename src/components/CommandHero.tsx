@@ -102,7 +102,7 @@ export default function CommandHero() {
 
         <div className="grid gap-s5 md:grid-cols-[1fr_0.82fr] md:items-end">
           <HeroStatement />
-          <ActiveServicePanel service={service} index={active} />
+          <ActiveServicePanel service={service} />
         </div>
       </div>
     </section>
@@ -182,7 +182,7 @@ function HeroStatement() {
   );
 }
 
-function ActiveServicePanel({ service, index }: { service: (typeof services)[number]; index: number }) {
+function ActiveServicePanel({ service }: { service: (typeof services)[number] }) {
   return (
     <motion.aside
       key={service.id}
@@ -195,7 +195,7 @@ function ActiveServicePanel({ service, index }: { service: (typeof services)[num
       <div className="flex items-center justify-between gap-s4 text-fs-caption uppercase tracking-[var(--tracking-eyebrow)] text-ink-muted">
         <span className="inline-flex items-center gap-s3">
           <span className="h-px w-s7 bg-[color:var(--accent)]" />
-          Module {String(index + 1).padStart(2, "0")}
+          Active service
         </span>
         <span className="h-s2 w-s2 rounded-pill bg-[color:var(--accent)] shadow-2" aria-hidden="true" />
       </div>
@@ -216,7 +216,6 @@ function ServiceConstellation({ active, setActive }: { active: number; setActive
           <li key={service.id} className="absolute" style={position}>
             <ServiceAtlasCard
               service={service}
-              index={index}
               selected={selected}
               onActivate={() => setActive(index)}
             />
@@ -229,12 +228,10 @@ function ServiceConstellation({ active, setActive }: { active: number; setActive
 
 function ServiceAtlasCard({
   service,
-  index,
   selected,
   onActivate,
 }: {
   service: (typeof services)[number];
-  index: number;
   selected: boolean;
   onActivate: () => void;
 }) {
@@ -244,31 +241,21 @@ function ServiceAtlasCard({
       onPointerEnter={onActivate}
       onFocus={onActivate}
       onClick={onActivate}
-      className={`service-atlas-card group min-h-[8.25rem] w-[17.5rem] -translate-x-1/2 -translate-y-1/2 rounded-xl p-s4 text-left transition-all duration-slow ease-emphasized focus-visible:border-[color:var(--accent)] ${
+      className={`service-atlas-card group min-h-[7.5rem] w-[18.75rem] -translate-x-1/2 -translate-y-1/2 rounded-xl p-s5 text-left transition-all duration-slow ease-emphasized focus-visible:border-[color:var(--accent)] ${
         selected ? "is-active scale-[1.04]" : "opacity-55 hover:opacity-100"
       }`}
       style={{ ["--accent" as string]: service.themeColor } as CSSProperties}
       aria-pressed={selected}
     >
-      <span className="flex items-center justify-between gap-s4 text-fs-caption uppercase tracking-[var(--tracking-eyebrow)] text-ink-faint">
-        <span className="font-display font-bold tabular-nums">{String(index + 1).padStart(2, "0")}</span>
-        <span className="h-s2 w-s2 rounded-pill bg-[color:var(--accent)] opacity-70 shadow-2" aria-hidden="true" />
-      </span>
-      <span className="mt-s3 block font-display text-fs-body-lg font-bold leading-tight text-ink-strong">
+      <span className="mb-s4 block h-px w-s8 bg-[color:var(--accent)] opacity-55 transition-all duration-slow group-hover:w-s9 group-hover:opacity-90" aria-hidden="true" />
+      <span className="block max-w-[15rem] font-display text-fs-h4 font-bold leading-[1.02] tracking-[var(--tracking-tight)] text-ink-strong">
         {service.name}
       </span>
-      <span className="mt-s2 block text-fs-caption font-medium leading-normal text-ink-body">
+      <span className="mt-s3 block max-w-[14.5rem] text-fs-body font-normal leading-snug text-ink-body">
         {service.tagline}
       </span>
       <span
-        className={`mt-s3 block max-h-0 overflow-hidden text-fs-caption leading-relaxed text-ink-muted transition-all duration-slow ease-emphasized group-hover:max-h-24 group-focus-visible:max-h-24 ${
-          selected ? "max-h-24" : ""
-        }`}
-      >
-        {SERVICE_COPY[service.id]}
-      </span>
-      <span
-        className={`absolute left-1/2 top-1/2 h-px w-[9rem] origin-left bg-[color:var(--accent)] transition-opacity duration-base ${selected ? "opacity-80" : "opacity-0 group-hover:opacity-50"}`}
+        className={`absolute left-1/2 top-1/2 h-px w-[9rem] origin-left bg-[color:var(--accent)] transition-opacity duration-base ${selected ? "opacity-70" : "opacity-0 group-hover:opacity-40"}`}
         aria-hidden="true"
       />
     </button>
