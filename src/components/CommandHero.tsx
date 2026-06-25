@@ -19,13 +19,13 @@ const SERVICE_COPY: Record<string, string> = {
 };
 
 const POSITIONS = [
-  { left: "19%", top: "30%" },
-  { left: "50%", top: "19%" },
-  { left: "80%", top: "30%" },
-  { left: "84%", top: "58%" },
-  { left: "64%", top: "76%" },
-  { left: "35%", top: "76%" },
-  { left: "16%", top: "58%" },
+  { left: "20%", top: "32%" },
+  { left: "50%", top: "20%" },
+  { left: "80%", top: "32%" },
+  { left: "78%", top: "59%" },
+  { left: "62%", top: "75%" },
+  { left: "38%", top: "75%" },
+  { left: "22%", top: "59%" },
 ] as const;
 
 type Point = { x: number; y: number };
@@ -189,15 +189,19 @@ function ActiveServicePanel({ service, index }: { service: (typeof services)[num
       initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
       animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
       transition={{ duration: DUR.slow, ease: EASE.emphasized }}
-      className="justify-self-start border-l border-surface-line pl-s5 md:justify-self-end md:max-w-md"
+      className="command-surface scanline justify-self-start rounded-xl p-s5 md:justify-self-end md:max-w-md"
       style={{ ["--accent" as string]: service.themeColor } as CSSProperties}
     >
-      <div className="flex items-center gap-s3 text-fs-caption uppercase tracking-[var(--tracking-eyebrow)] text-ink-muted">
-        <span className="h-px w-s7 bg-[color:var(--accent)]" />
-        Module {String(index + 1).padStart(2, "0")}
+      <div className="flex items-center justify-between gap-s4 text-fs-caption uppercase tracking-[var(--tracking-eyebrow)] text-ink-muted">
+        <span className="inline-flex items-center gap-s3">
+          <span className="h-px w-s7 bg-[color:var(--accent)]" />
+          Module {String(index + 1).padStart(2, "0")}
+        </span>
+        <span className="h-s2 w-s2 rounded-pill bg-[color:var(--accent)] shadow-2" aria-hidden="true" />
       </div>
       <h2 className="mt-s3 font-display text-fs-h3 font-bold text-ink-strong">{service.name}</h2>
-      <p className="mt-s3 text-fs-body text-ink-body">{SERVICE_COPY[service.id]}</p>
+      <p className="mt-s2 text-fs-body font-medium text-ink-strong/80">{service.tagline}</p>
+      <p className="mt-s4 text-fs-body text-ink-body">{SERVICE_COPY[service.id]}</p>
     </motion.aside>
   );
 }
@@ -210,24 +214,64 @@ function ServiceConstellation({ active, setActive }: { active: number; setActive
         const position = POSITIONS[index];
         return (
           <li key={service.id} className="absolute" style={position}>
-            <button
-              type="button"
-              onPointerEnter={() => setActive(index)}
-              onFocus={() => setActive(index)}
-              className="group min-h-[48px] -translate-x-1/2 -translate-y-1/2 rounded-pill border border-surface-line bg-surface-base/20 px-s4 py-s2 text-left text-fs-caption text-ink-muted transition-all duration-base ease-standard hover:border-[color:var(--accent)] hover:text-ink-strong focus-visible:border-[color:var(--accent)]"
-              style={{ ["--accent" as string]: service.themeColor } as CSSProperties}
-            >
-              <span className="block font-display font-bold tabular-nums opacity-60">{String(index + 1).padStart(2, "0")}</span>
-              <span className="block max-w-[13rem] whitespace-nowrap font-medium tracking-[-0.02em]">{service.name}</span>
-              <span
-                className={`absolute left-1/2 top-1/2 h-px w-[7rem] origin-left bg-[color:var(--accent)] transition-opacity duration-base ${selected ? "opacity-70" : "opacity-0 group-hover:opacity-50"}`}
-                aria-hidden="true"
-              />
-            </button>
+            <ServiceAtlasCard
+              service={service}
+              index={index}
+              selected={selected}
+              onActivate={() => setActive(index)}
+            />
           </li>
         );
       })}
     </ol>
+  );
+}
+
+function ServiceAtlasCard({
+  service,
+  index,
+  selected,
+  onActivate,
+}: {
+  service: (typeof services)[number];
+  index: number;
+  selected: boolean;
+  onActivate: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onPointerEnter={onActivate}
+      onFocus={onActivate}
+      onClick={onActivate}
+      className={`service-atlas-card group min-h-[8.25rem] w-[17.5rem] -translate-x-1/2 -translate-y-1/2 rounded-xl p-s4 text-left transition-all duration-slow ease-emphasized focus-visible:border-[color:var(--accent)] ${
+        selected ? "is-active scale-[1.04]" : "opacity-55 hover:opacity-100"
+      }`}
+      style={{ ["--accent" as string]: service.themeColor } as CSSProperties}
+      aria-pressed={selected}
+    >
+      <span className="flex items-center justify-between gap-s4 text-fs-caption uppercase tracking-[var(--tracking-eyebrow)] text-ink-faint">
+        <span className="font-display font-bold tabular-nums">{String(index + 1).padStart(2, "0")}</span>
+        <span className="h-s2 w-s2 rounded-pill bg-[color:var(--accent)] opacity-70 shadow-2" aria-hidden="true" />
+      </span>
+      <span className="mt-s3 block font-display text-fs-body-lg font-bold leading-tight text-ink-strong">
+        {service.name}
+      </span>
+      <span className="mt-s2 block text-fs-caption font-medium leading-normal text-ink-body">
+        {service.tagline}
+      </span>
+      <span
+        className={`mt-s3 block max-h-0 overflow-hidden text-fs-caption leading-relaxed text-ink-muted transition-all duration-slow ease-emphasized group-hover:max-h-24 group-focus-visible:max-h-24 ${
+          selected ? "max-h-24" : ""
+        }`}
+      >
+        {SERVICE_COPY[service.id]}
+      </span>
+      <span
+        className={`absolute left-1/2 top-1/2 h-px w-[9rem] origin-left bg-[color:var(--accent)] transition-opacity duration-base ${selected ? "opacity-80" : "opacity-0 group-hover:opacity-50"}`}
+        aria-hidden="true"
+      />
+    </button>
   );
 }
 
@@ -242,14 +286,15 @@ function MobileServiceSelector({ active, setActive }: { active: number; setActiv
               key={service.id}
               type="button"
               onClick={() => setActive(index)}
-              className="min-h-[44px] flex-none rounded-pill border px-s4 text-fs-caption transition-colors duration-base"
+              className="min-h-[64px] w-[15rem] flex-none rounded-lg border px-s4 py-s3 text-left text-fs-caption transition-colors duration-base"
               style={{
                 borderColor: selected ? service.themeColor : "var(--surface-line)",
                 color: selected ? "var(--ink-strong)" : "var(--ink-muted)",
                 background: selected ? "var(--surface-raised)" : "transparent",
               }}
             >
-              {service.name}
+              <span className="block font-display font-bold text-ink-strong">{service.name}</span>
+              <span className="mt-s1 block text-ink-muted">{service.tagline}</span>
             </button>
           );
         })}
