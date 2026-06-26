@@ -419,9 +419,9 @@
 }
 
 .robot-video-aura {
-  filter: blur(52px);
-  opacity: 0.14;
-  transform: scale(1.12);
+  filter: blur(120px);
+  opacity: 0.08;
+  transform: scale(0.82);
 }
 
 @media (max-width: 767px) {

@@ -224,7 +224,7 @@ export default function RobotCore({ accent }: RobotCoreProps) {
 
   return (
     <div className="relative h-full w-full" style={{ ["--accent" as string]: accent }}>
-      <div className="absolute inset-[14%] rounded-pill bg-[color:var(--accent)] opacity-20 blur-[46px]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,color-mix(in_srgb,var(--accent)_14%,transparent),transparent_36rem)]" />
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full opacity-100" aria-hidden="true" />
     </div>
   );

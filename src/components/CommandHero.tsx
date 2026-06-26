@@ -121,9 +121,10 @@ export default function CommandHero() {
         </div>
       </div>
 
+      <CyberCore active={active} />
+
       <div className="relative z-30 flex h-full flex-col px-gutter pb-s7 pt-s10">
         <div className="flex flex-1 items-center justify-center">
-          <CyberCore active={active} />
           <ServiceConstellation active={active} cursor={cursorNorm} entered={entered && !reduceMotion} setActive={setActive} />
         </div>
 
@@ -142,7 +143,6 @@ function BaseAtmosphere() {
   return (
     <div className="absolute inset-0 z-0" aria-hidden="true">
       <div className="robot-world-atmosphere absolute inset-0" />
-      <div className="absolute inset-0 opacity-[0.08] [background-image:radial-gradient(var(--ink-strong)_1px,transparent_1px)] [background-size:24px_24px]" />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,color-mix(in_srgb,var(--surface-base)_44%,transparent)_58%,var(--surface-base)_100%)]" />
     </div>
   );
@@ -157,7 +157,6 @@ function RevealAtmosphere({ active, entered }: { active: number; entered: boolea
       aria-hidden="true"
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_var(--cursor-x)_var(--cursor-y),color-mix(in_srgb,var(--accent)_30%,transparent)_0%,color-mix(in_srgb,var(--brand-grad-mid)_18%,transparent)_32%,transparent_68%)]" />
-      <div className="absolute inset-0 opacity-50 [background-image:linear-gradient(color-mix(in_srgb,var(--accent)_20%,transparent)_1px,transparent_1px),linear-gradient(90deg,color-mix(in_srgb,var(--brand-grad-start)_16%,transparent)_1px,transparent_1px)] [background-size:48px_48px]" />
       {!entered && <div className="absolute inset-0 bg-surface-base/70" />}
     </div>
   );
@@ -368,12 +367,12 @@ function CyberCore({ active }: { active: number }) {
 
   return (
     <div
-      className="pointer-events-none relative z-50 mx-auto grid aspect-square w-[min(86vw,38rem)] place-items-center md:w-[min(48vw,44rem)]"
+      className="pointer-events-none absolute inset-0 z-10"
       style={{ ["--accent" as string]: service.themeColor } as CSSProperties}
       aria-hidden="true"
     >
-      <div className="robot-video-aura absolute inset-[18%] z-0 rounded-pill bg-[color:var(--accent)]" />
-      <div className="robot-3d-core relative z-10 aspect-[4/5] w-[66%] md:w-[58%]">
+      <div className="robot-video-aura absolute inset-0 z-0 bg-[color:var(--accent)]" />
+      <div className="robot-3d-core absolute inset-0 z-10">
         <RobotCore accent={service.themeColor} />
       </div>
     </div>
