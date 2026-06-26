@@ -9,7 +9,6 @@ import { DUR, EASE, useMotionSafe } from "@/lib/motion";
 import TiltCard from "@/components/TiltCard";
 import TextReveal from "@/components/TextReveal";
 
-const SPOTLIGHT_R = 260;
 const RobotCore = dynamic(() => import("@/components/RobotCore"), {
   ssr: false,
   loading: () => <div className="h-full w-full bg-surface-sunken" />,
@@ -90,7 +89,6 @@ export default function CommandHero() {
       ["--accent" as string]: service.themeColor,
       ["--cursor-x" as string]: `${cursor.x}px`,
       ["--cursor-y" as string]: `${cursor.y}px`,
-      ["--spotlight-r" as string]: `${SPOTLIGHT_R}px`,
     } as CSSProperties),
     [cursor.x, cursor.y, service.themeColor],
   );
@@ -113,7 +111,6 @@ export default function CommandHero() {
       aria-label="TechUpServices service atlas"
     >
       <BaseAtmosphere />
-      <RevealAtmosphere active={active} entered={entered || reduceMotion} />
 
       <div className="absolute inset-x-0 top-[12%] z-20 pointer-events-none px-gutter text-center">
         <div className="cyber-watermark font-display font-bold uppercase leading-none tracking-[-0.08em]">
@@ -144,20 +141,6 @@ function BaseAtmosphere() {
     <div className="absolute inset-0 z-0" aria-hidden="true">
       <div className="robot-world-atmosphere absolute inset-0" />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,color-mix(in_srgb,var(--surface-base)_44%,transparent)_58%,var(--surface-base)_100%)]" />
-    </div>
-  );
-}
-
-function RevealAtmosphere({ active, entered }: { active: number; entered: boolean }) {
-  const activeService = services[active];
-  return (
-    <div
-      className="cyber-reveal-layer absolute inset-0 z-10 pointer-events-none opacity-95"
-      style={{ ["--accent" as string]: activeService.themeColor } as CSSProperties}
-      aria-hidden="true"
-    >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_var(--cursor-x)_var(--cursor-y),color-mix(in_srgb,var(--accent)_30%,transparent)_0%,color-mix(in_srgb,var(--brand-grad-mid)_18%,transparent)_32%,transparent_68%)]" />
-      {!entered && <div className="absolute inset-0 bg-surface-base/70" />}
     </div>
   );
 }

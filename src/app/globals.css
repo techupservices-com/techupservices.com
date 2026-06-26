@@ -253,41 +253,6 @@
     linear-gradient(180deg, color-mix(in srgb, var(--robot-void) 92%, var(--command-base)), var(--robot-void) 58%, var(--command-sunken));
 }
 
-.cyber-reveal-layer {
-  -webkit-mask-image: radial-gradient(
-    circle var(--spotlight-r) at var(--cursor-x) var(--cursor-y),
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 1) 38%,
-    rgba(0, 0, 0, 0.72) 56%,
-    rgba(0, 0, 0, 0.28) 76%,
-    rgba(0, 0, 0, 0) 100%
-  );
-  mask-image: radial-gradient(
-    circle var(--spotlight-r) at var(--cursor-x) var(--cursor-y),
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 1) 38%,
-    rgba(0, 0, 0, 0.72) 56%,
-    rgba(0, 0, 0, 0.28) 76%,
-    rgba(0, 0, 0, 0) 100%
-  );
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-}
-
-.cyber-reveal-layer::before {
-  content: "";
-  position: absolute;
-  inset: 12% 8% auto auto;
-  width: min(64vw, 22rem);
-  aspect-ratio: 1;
-  pointer-events: none;
-  border-radius: var(--radius-pill);
-  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 22%, transparent), transparent 68%);
-  filter: blur(18px);
-  opacity: 0.42;
-  animation: cyber-breathe var(--dur-ambient) var(--ease-standard) infinite;
-}
-
 .cyber-watermark {
   font-size: clamp(4.5rem, 18vw, 18rem);
   color: transparent;
@@ -424,20 +389,8 @@
   transform: scale(0.82);
 }
 
-@media (max-width: 767px) {
-  .cyber-reveal-layer {
-    -webkit-mask-image: radial-gradient(circle 17rem at var(--cursor-x) var(--cursor-y), rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.54) 54%, rgba(0, 0, 0, 0) 100%), radial-gradient(circle at 50% 35%, rgba(0, 0, 0, 0.88), transparent 76%);
-    mask-image: radial-gradient(circle 17rem at var(--cursor-x) var(--cursor-y), rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.54) 54%, rgba(0, 0, 0, 0) 100%), radial-gradient(circle at 50% 35%, rgba(0, 0, 0, 0.88), transparent 76%);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .scanline::after { animation: none; opacity: 0; }
-  .cyber-reveal-layer::before { animation: none; }
-  .cyber-reveal-layer {
-    -webkit-mask-image: radial-gradient(circle at 50% 42%, rgba(0, 0, 0, 1), transparent 76%);
-    mask-image: radial-gradient(circle at 50% 42%, rgba(0, 0, 0, 1), transparent 76%);
-  }
 }
 
 /* ============================================================

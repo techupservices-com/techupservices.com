@@ -59,6 +59,18 @@ function drawCover(ctx: CanvasRenderingContext2D, image: HTMLImageElement, width
   ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, width, height);
 }
 
+function drawContain(ctx: CanvasRenderingContext2D, image: HTMLImageElement, width: number, height: number) {
+  const imageRatio = image.naturalWidth / image.naturalHeight;
+  const maxHeight = height * 0.96;
+  const maxWidth = width * 0.72;
+  const drawHeight = Math.min(maxHeight, maxWidth / imageRatio);
+  const drawWidth = drawHeight * imageRatio;
+  const drawX = (width - drawWidth) / 2;
+  const drawY = (height - drawHeight) / 2;
+
+  ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+}
+
 export default function RobotCore({ accent }: RobotCoreProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number | null>(null);
@@ -123,12 +135,16 @@ export default function RobotCore({ accent }: RobotCoreProps) {
       }
     }
 
-    function drawImage(direction: Direction, alpha: number) {
+    function drawFrame(direction: Direction, alpha: number) {
       const image = directionImagesRef.current[direction];
       if (!image?.complete || image.naturalWidth <= 0) return;
 
       canvasContext.globalAlpha = alpha;
+      canvasContext.filter = "blur(44px) saturate(1.15)";
       drawCover(canvasContext, image, canvasElement.width, canvasElement.height, false);
+      canvasContext.filter = "none";
+      canvasContext.globalAlpha = alpha * 0.88;
+      drawContain(canvasContext, image, canvasElement.width, canvasElement.height);
       canvasContext.globalAlpha = 1;
     }
 
@@ -136,7 +152,8 @@ export default function RobotCore({ accent }: RobotCoreProps) {
       const image = directionImagesRef.current[direction];
       if (!image?.complete || image.naturalWidth <= 0) return;
 
-      drawCover(canvasContext, image, canvasElement.width, canvasElement.height);
+      canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
+      drawFrame(direction, 1);
       state.fromDirection = direction;
       state.toDirection = direction;
       state.renderedDirection = direction;
@@ -149,8 +166,8 @@ export default function RobotCore({ accent }: RobotCoreProps) {
       const eased = easeOutCubic(progress);
 
       canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
-      drawImage(state.fromDirection, 1);
-      drawImage(state.toDirection, eased);
+      drawFrame(state.fromDirection, 1);
+      drawFrame(state.toDirection, eased);
 
       if (progress >= 1) {
         state.fromDirection = state.toDirection;
@@ -224,7 +241,6 @@ export default function RobotCore({ accent }: RobotCoreProps) {
 
   return (
     <div className="relative h-full w-full" style={{ ["--accent" as string]: accent }}>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,color-mix(in_srgb,var(--accent)_14%,transparent),transparent_36rem)]" />
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full opacity-100" aria-hidden="true" />
     </div>
   );
