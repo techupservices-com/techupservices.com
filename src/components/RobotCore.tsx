@@ -7,10 +7,10 @@ type RobotCoreProps = {
 };
 
 const VIDEO_SRC = "/images/robot.mp4";
-const SCRUB_SMOOTHING = 0.5;
-const FAST_SCRUB_SMOOTHING = 0.82;
-const FAST_SCRUB_DISTANCE = 0.22;
-const MIN_SEEK_DELTA = 0.003;
+const SCRUB_SMOOTHING = 0.68;
+const FAST_SCRUB_SMOOTHING = 0.94;
+const FAST_SCRUB_DISTANCE = 0.12;
+const MIN_SEEK_DELTA = 0.002;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
