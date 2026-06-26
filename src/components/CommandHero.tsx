@@ -368,14 +368,12 @@ function CyberCore({ active }: { active: number }) {
 
   return (
     <div
-      className="pointer-events-none relative z-50 mx-auto grid aspect-square w-[min(78vw,34rem)] place-items-center md:w-[min(44vw,40rem)]"
+      className="pointer-events-none relative z-50 mx-auto grid aspect-square w-[min(86vw,38rem)] place-items-center md:w-[min(48vw,44rem)]"
       style={{ ["--accent" as string]: service.themeColor } as CSSProperties}
       aria-hidden="true"
     >
       <div className="robot-video-aura absolute inset-[18%] z-0 rounded-pill bg-[color:var(--accent)]" />
-      <div className="absolute inset-[5%] z-0 rotate-45 border border-surface-line opacity-25" />
-      <div className="absolute inset-[13%] z-0 -rotate-6 rounded-2xl border border-[color:var(--accent)] bg-surface-raised/10 opacity-35 shadow-3" />
-      <div className="robot-3d-core relative z-10 aspect-[4/5] w-[58%] overflow-hidden rounded-[36%_36%_30%_30%] border border-surface-line bg-surface-sunken shadow-3 md:w-[48%]">
+      <div className="robot-3d-core relative z-10 aspect-[4/5] w-[66%] md:w-[58%]">
         <RobotCore accent={service.themeColor} />
       </div>
     </div>
