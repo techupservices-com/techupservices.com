@@ -19,6 +19,7 @@ const SCRUB_CONTROLS = [
     key: "scrubSmoothing",
     label: "SCRUB_SMOOTHING",
     helper: "Base cursor smoothing",
+    description: "Controls the normal frame-to-frame follow speed. Higher values make the robot track the cursor faster; lower values add more glide and delay.",
     min: 0.68,
     max: 1,
     step: 0.005,
@@ -27,6 +28,7 @@ const SCRUB_CONTROLS = [
     key: "fastScrubSmoothing",
     label: "FAST_SCRUB_SMOOTHING",
     helper: "Large movement catch-up",
+    description: "Controls how aggressively the robot catches up after a big left/right mouse move. Higher values feel snappier when you cross the hero quickly.",
     min: 0.94,
     max: 1,
     step: 0.001,
@@ -35,6 +37,7 @@ const SCRUB_CONTROLS = [
     key: "fastScrubDistance",
     label: "FAST_SCRUB_DISTANCE",
     helper: "When fast mode starts",
+    description: "Sets how far behind the video must be before fast catch-up starts. Lower values trigger fast mode sooner; higher values keep more smooth easing.",
     min: 0.02,
     max: 0.12,
     step: 0.005,
@@ -43,6 +46,7 @@ const SCRUB_CONTROLS = [
     key: "minSeekDelta",
     label: "MIN_SEEK_DELTA",
     helper: "Smallest seek update",
+    description: "Sets the minimum time change before the video seeks again. Lower values update more often for smoother motion, but can add more seeking work.",
     min: 0.0005,
     max: 0.002,
     step: 0.0001,
@@ -199,7 +203,7 @@ export default function RobotCore({ accent }: RobotCoreProps) {
         preload="auto"
       />
       {showTuner ? (
-        <aside className="fixed right-4 top-24 z-50 hidden w-80 rounded-3xl border border-white/15 bg-slate-950/90 p-4 text-white shadow-2xl shadow-cyan-500/10 backdrop-blur-xl lg:block">
+        <aside className="pointer-events-auto fixed right-4 top-24 z-50 hidden max-h-[calc(100dvh-7rem)] w-80 overflow-y-auto rounded-3xl border border-white/15 bg-slate-950/90 p-4 text-white shadow-2xl shadow-cyan-500/10 backdrop-blur-xl lg:block">
           <div className="mb-4 flex items-start justify-between gap-3 border-b border-white/10 pb-4">
             <div>
               <p className="text-xs uppercase tracking-widest text-cyan-200/80">Robot dashboard</p>
@@ -214,8 +218,8 @@ export default function RobotCore({ accent }: RobotCoreProps) {
             </button>
           </div>
 
-          {SCRUB_CONTROLS.map(({ key, label, helper, min, max, step }) => (
-            <label key={key} className="mb-4 block text-xs text-white/65">
+          {SCRUB_CONTROLS.map(({ key, label, helper, description, min, max, step }) => (
+            <label key={key} className="mb-5 block text-xs text-white/65">
               <span className="mb-2 flex justify-between gap-3">
                 <span>
                   <span className="block font-mono text-[0.68rem] text-white/80">{label}</span>
@@ -223,6 +227,7 @@ export default function RobotCore({ accent }: RobotCoreProps) {
                 </span>
                 <span className="font-mono text-cyan-100">{settings[key].toFixed(4)}</span>
               </span>
+              <span className="mb-2 block leading-relaxed text-white/55">{description}</span>
               <input
                 type="range"
                 min={min}
