@@ -61,12 +61,12 @@ function drawCover(ctx: CanvasRenderingContext2D, image: HTMLImageElement, width
 
 function drawContain(ctx: CanvasRenderingContext2D, image: HTMLImageElement, width: number, height: number) {
   const imageRatio = image.naturalWidth / image.naturalHeight;
-  const maxHeight = height * 0.96;
-  const maxWidth = width * 0.72;
+  const maxHeight = height * 0.7;
+  const maxWidth = width * 0.42;
   const drawHeight = Math.min(maxHeight, maxWidth / imageRatio);
   const drawWidth = drawHeight * imageRatio;
   const drawX = (width - drawWidth) / 2;
-  const drawY = (height - drawHeight) / 2;
+  const drawY = height - drawHeight * 0.92;
 
   ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
 }
@@ -139,11 +139,11 @@ export default function RobotCore({ accent }: RobotCoreProps) {
       const image = directionImagesRef.current[direction];
       if (!image?.complete || image.naturalWidth <= 0) return;
 
-      canvasContext.globalAlpha = alpha;
+      canvasContext.globalAlpha = alpha * 0.22;
       canvasContext.filter = "blur(44px) saturate(1.15)";
       drawCover(canvasContext, image, canvasElement.width, canvasElement.height, false);
       canvasContext.filter = "none";
-      canvasContext.globalAlpha = alpha * 0.88;
+      canvasContext.globalAlpha = alpha * 0.96;
       drawContain(canvasContext, image, canvasElement.width, canvasElement.height);
       canvasContext.globalAlpha = 1;
     }
