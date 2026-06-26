@@ -47,18 +47,6 @@ function easeOutCubic(value: number) {
   return 1 - Math.pow(1 - value, 3);
 }
 
-function drawCover(ctx: CanvasRenderingContext2D, image: HTMLImageElement, width: number, height: number, clear = true) {
-  const imageRatio = image.naturalWidth / image.naturalHeight;
-  const canvasRatio = width / height;
-  const sourceWidth = imageRatio > canvasRatio ? image.naturalHeight * canvasRatio : image.naturalWidth;
-  const sourceHeight = imageRatio > canvasRatio ? image.naturalHeight : image.naturalWidth / canvasRatio;
-  const sourceX = (image.naturalWidth - sourceWidth) / 2;
-  const sourceY = (image.naturalHeight - sourceHeight) / 2;
-
-  if (clear) ctx.clearRect(0, 0, width, height);
-  ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, width, height);
-}
-
 function drawContain(ctx: CanvasRenderingContext2D, image: HTMLImageElement, width: number, height: number) {
   const imageRatio = image.naturalWidth / image.naturalHeight;
   const maxHeight = height * 0.7;
@@ -139,10 +127,6 @@ export default function RobotCore({ accent }: RobotCoreProps) {
       const image = directionImagesRef.current[direction];
       if (!image?.complete || image.naturalWidth <= 0) return;
 
-      canvasContext.globalAlpha = alpha * 0.22;
-      canvasContext.filter = "blur(44px) saturate(1.15)";
-      drawCover(canvasContext, image, canvasElement.width, canvasElement.height, false);
-      canvasContext.filter = "none";
       canvasContext.globalAlpha = alpha * 0.96;
       drawContain(canvasContext, image, canvasElement.width, canvasElement.height);
       canvasContext.globalAlpha = 1;
