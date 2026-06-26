@@ -8,11 +8,46 @@ type RobotCoreProps = {
 
 const VIDEO_SRC = "/images/robot.mp4";
 const DEFAULT_SCRUB_SETTINGS = {
-  scrubSmoothing: 0.9,
-  fastScrubSmoothing: 0.995,
-  fastScrubDistance: 0.04,
-  minSeekDelta: 0.001,
+  scrubSmoothing: 0.82,
+  fastScrubSmoothing: 0.98,
+  fastScrubDistance: 0.07,
+  minSeekDelta: 0.0015,
 };
+
+const SCRUB_CONTROLS = [
+  {
+    key: "scrubSmoothing",
+    label: "SCRUB_SMOOTHING",
+    helper: "Base cursor smoothing",
+    min: 0.68,
+    max: 1,
+    step: 0.005,
+  },
+  {
+    key: "fastScrubSmoothing",
+    label: "FAST_SCRUB_SMOOTHING",
+    helper: "Large movement catch-up",
+    min: 0.94,
+    max: 1,
+    step: 0.001,
+  },
+  {
+    key: "fastScrubDistance",
+    label: "FAST_SCRUB_DISTANCE",
+    helper: "When fast mode starts",
+    min: 0.02,
+    max: 0.12,
+    step: 0.005,
+  },
+  {
+    key: "minSeekDelta",
+    label: "MIN_SEEK_DELTA",
+    helper: "Smallest seek update",
+    min: 0.0005,
+    max: 0.002,
+    step: 0.0001,
+  },
+] as const;
 
 type ScrubSettings = typeof DEFAULT_SCRUB_SETTINGS;
 
@@ -25,7 +60,7 @@ export default function RobotCore({ accent }: RobotCoreProps) {
   const frameRef = useRef<number | null>(null);
   const settingsRef = useRef<ScrubSettings>(DEFAULT_SCRUB_SETTINGS);
   const [settings, setSettings] = useState<ScrubSettings>(DEFAULT_SCRUB_SETTINGS);
-  const [showTuner, setShowTuner] = useState(false);
+  const [showTuner, setShowTuner] = useState(true);
   const stateRef = useRef({
     targetTime: 0,
     smoothTime: 0,
@@ -38,12 +73,14 @@ export default function RobotCore({ accent }: RobotCoreProps) {
   }, [settings]);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("robotTune") !== "1") return;
-
-    setShowTuner(true);
-
     try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("robotTune") === "1") {
+        window.localStorage.removeItem("robot-scrub-tuner-disabled");
+        setShowTuner(true);
+      } else {
+        setShowTuner(window.localStorage.getItem("robot-scrub-tuner-disabled") !== "1");
+      }
       const savedSettings = window.localStorage.getItem("robot-scrub-settings");
       if (savedSettings) {
         setSettings({ ...DEFAULT_SCRUB_SETTINGS, ...JSON.parse(savedSettings) });
@@ -135,6 +172,16 @@ export default function RobotCore({ accent }: RobotCoreProps) {
     window.localStorage.setItem("robot-scrub-settings", JSON.stringify(settings));
   }
 
+  function resetSettings() {
+    setSettings(DEFAULT_SCRUB_SETTINGS);
+    window.localStorage.removeItem("robot-scrub-settings");
+  }
+
+  function disableTuner() {
+    window.localStorage.setItem("robot-scrub-tuner-disabled", "1");
+    setShowTuner(false);
+  }
+
   function copySettings() {
     const constants = `const DEFAULT_SCRUB_SETTINGS = {\n  scrubSmoothing: ${settings.scrubSmoothing},\n  fastScrubSmoothing: ${settings.fastScrubSmoothing},\n  fastScrubDistance: ${settings.fastScrubDistance},\n  minSeekDelta: ${settings.minSeekDelta},\n};`;
     void navigator.clipboard?.writeText(constants);
@@ -152,30 +199,28 @@ export default function RobotCore({ accent }: RobotCoreProps) {
         preload="auto"
       />
       {showTuner ? (
-        <div className="fixed right-4 top-24 z-50 w-72 rounded-3xl border border-white/15 bg-slate-950/90 p-4 text-white shadow-2xl shadow-cyan-500/10 backdrop-blur-xl">
-          <div className="mb-4 flex items-start justify-between gap-3">
+        <aside className="fixed right-4 top-24 z-50 hidden w-80 rounded-3xl border border-white/15 bg-slate-950/90 p-4 text-white shadow-2xl shadow-cyan-500/10 backdrop-blur-xl lg:block">
+          <div className="mb-4 flex items-start justify-between gap-3 border-b border-white/10 pb-4">
             <div>
-              <p className="text-xs uppercase tracking-widest text-cyan-200/80">Robot tuner</p>
-              <p className="mt-1 text-sm text-white/70">Use `?robotTune=1`; remove it to hide.</p>
+              <p className="text-xs uppercase tracking-widest text-cyan-200/80">Robot dashboard</p>
+              <p className="mt-1 text-sm text-white/70">Tune the hero robot, then save and disable this panel.</p>
             </div>
             <button
               type="button"
-              className="rounded-full border border-white/15 px-2 py-1 text-xs text-white/70 transition hover:border-cyan-300/50 hover:text-white"
-              onClick={() => setShowTuner(false)}
+              className="min-h-11 rounded-full border border-white/15 px-3 text-xs text-white/70 transition hover:border-cyan-300/50 hover:text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/60"
+              onClick={disableTuner}
             >
-              Hide
+              Disable
             </button>
           </div>
 
-          {([
-            ["scrubSmoothing", "Smooth", 0.5, 1, 0.005],
-            ["fastScrubSmoothing", "Fast", 0.8, 1, 0.001],
-            ["fastScrubDistance", "Fast threshold", 0.005, 0.2, 0.005],
-            ["minSeekDelta", "Seek delta", 0.0005, 0.01, 0.0005],
-          ] as const).map(([key, label, min, max, step]) => (
-            <label key={key} className="mb-3 block text-xs text-white/65">
-              <span className="mb-1 flex justify-between gap-3">
-                <span>{label}</span>
+          {SCRUB_CONTROLS.map(({ key, label, helper, min, max, step }) => (
+            <label key={key} className="mb-4 block text-xs text-white/65">
+              <span className="mb-2 flex justify-between gap-3">
+                <span>
+                  <span className="block font-mono text-[0.68rem] text-white/80">{label}</span>
+                  <span className="block text-white/45">{helper}</span>
+                </span>
                 <span className="font-mono text-cyan-100">{settings[key].toFixed(4)}</span>
               </span>
               <input
@@ -185,28 +230,40 @@ export default function RobotCore({ accent }: RobotCoreProps) {
                 step={step}
                 value={settings[key]}
                 onChange={(event) => updateSetting(key, Number(event.target.value))}
-                className="w-full accent-cyan-300"
+                aria-label={label}
+                className="h-11 w-full accent-cyan-300"
               />
+              <span className="mt-1 flex justify-between font-mono text-[0.65rem] text-white/35">
+                <span>{min}</span>
+                <span>{max}</span>
+              </span>
             </label>
           ))}
 
-          <div className="mt-4 grid grid-cols-2 gap-2">
+          <div className="mt-5 grid grid-cols-3 gap-2">
             <button
               type="button"
-              className="rounded-full bg-cyan-300 px-3 py-2 text-xs font-semibold text-slate-950 transition hover:bg-cyan-200"
+              className="min-h-11 rounded-full bg-cyan-300 px-3 text-xs font-semibold text-slate-950 transition hover:bg-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-300/60"
               onClick={saveSettings}
             >
-              Save local
+              Save
             </button>
             <button
               type="button"
-              className="rounded-full border border-white/15 px-3 py-2 text-xs font-semibold text-white transition hover:border-cyan-300/50"
+              className="min-h-11 rounded-full border border-white/15 px-3 text-xs font-semibold text-white transition hover:border-cyan-300/50 focus:outline-none focus:ring-2 focus:ring-cyan-300/60"
+              onClick={resetSettings}
+            >
+              Reset
+            </button>
+            <button
+              type="button"
+              className="min-h-11 rounded-full border border-white/15 px-3 text-xs font-semibold text-white transition hover:border-cyan-300/50 focus:outline-none focus:ring-2 focus:ring-cyan-300/60"
               onClick={copySettings}
             >
-              Copy values
+              Copy
             </button>
           </div>
-        </div>
+        </aside>
       ) : null}
     </div>
   );
