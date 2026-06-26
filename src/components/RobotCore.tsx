@@ -10,7 +10,10 @@ type RobotCoreProps = {
 
 type Cursor = { x: number; y: number };
 
-const CHARACTER_TEXTURE = "/images/robot_final.png";
+const BODY_TEXTURE = "/images/robot_body.png";
+const HEAD_TEXTURE = "/images/robot_head.png";
+const ROBOT_SCALE = 2.58;
+const HEAD_PIVOT_Y = 0.3;
 
 function useWindowCursor() {
   const cursor = useRef<Cursor>({ x: 0, y: 0 });
@@ -44,34 +47,45 @@ function useWindowCursor() {
 
 function CharacterSprite({ accent }: RobotCoreProps) {
   const rootRef = useRef<THREE.Group>(null);
-  const imageRef = useRef<THREE.Mesh>(null);
+  const bodyRef = useRef<THREE.Mesh>(null);
+  const headRef = useRef<THREE.Group>(null);
+  const eyeGlintRef = useRef<THREE.Group>(null);
   const haloRef = useRef<THREE.Mesh>(null);
   const cursorState = useWindowCursor();
-  const texture = useLoader(THREE.TextureLoader, CHARACTER_TEXTURE);
+  const [bodyTexture, headTexture] = useLoader(THREE.TextureLoader, [BODY_TEXTURE, HEAD_TEXTURE]);
   const accentColor = useMemo(() => new THREE.Color(accent), [accent]);
 
   useEffect(() => {
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.anisotropy = 8;
-    texture.needsUpdate = true;
-  }, [texture]);
+    [bodyTexture, headTexture].forEach((texture) => {
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.anisotropy = 8;
+      texture.needsUpdate = true;
+    });
+  }, [bodyTexture, headTexture]);
 
   useFrame((state) => {
     const root = rootRef.current;
-    const image = imageRef.current;
+    const body = bodyRef.current;
+    const head = headRef.current;
+    const eyeGlint = eyeGlintRef.current;
     const halo = haloRef.current;
-    if (!root || !image || !halo || cursorState.reducedMotion.current) return;
+    if (!root || !body || !head || !eyeGlint || !halo || cursorState.reducedMotion.current) return;
 
     const x = THREE.MathUtils.clamp(cursorState.cursor.current.x, -1, 1);
     const y = THREE.MathUtils.clamp(cursorState.cursor.current.y, -1, 1);
     const elapsed = state.clock.elapsedTime;
 
-    root.rotation.y = THREE.MathUtils.lerp(root.rotation.y, x * 0.18, 0.085);
-    root.rotation.x = THREE.MathUtils.lerp(root.rotation.x, -y * 0.1, 0.085);
-    root.position.x = THREE.MathUtils.lerp(root.position.x, x * 0.08, 0.075);
+    root.rotation.y = THREE.MathUtils.lerp(root.rotation.y, x * 0.055, 0.07);
+    root.rotation.x = THREE.MathUtils.lerp(root.rotation.x, -y * 0.025, 0.07);
+    root.position.x = THREE.MathUtils.lerp(root.position.x, x * 0.045, 0.075);
     root.position.y = THREE.MathUtils.lerp(root.position.y, -y * 0.05 + Math.sin(elapsed * 0.78) * 0.025, 0.075);
 
-    image.rotation.z = THREE.MathUtils.lerp(image.rotation.z, x * -0.025, 0.08);
+    body.rotation.z = THREE.MathUtils.lerp(body.rotation.z, x * -0.006, 0.08);
+    head.rotation.y = THREE.MathUtils.lerp(head.rotation.y, x * 0.36, 0.15);
+    head.rotation.x = THREE.MathUtils.lerp(head.rotation.x, -y * 0.18, 0.15);
+    head.rotation.z = THREE.MathUtils.lerp(head.rotation.z, x * -0.035, 0.12);
+    eyeGlint.position.x = THREE.MathUtils.lerp(eyeGlint.position.x, x * 0.035, 0.18);
+    eyeGlint.position.y = THREE.MathUtils.lerp(eyeGlint.position.y, -y * 0.02, 0.18);
     halo.position.x = THREE.MathUtils.lerp(halo.position.x, x * 0.22, 0.06);
     halo.position.y = THREE.MathUtils.lerp(halo.position.y, -y * 0.16, 0.06);
   });
@@ -86,10 +100,24 @@ function CharacterSprite({ accent }: RobotCoreProps) {
         <circleGeometry args={[1, 80]} />
         <meshBasicMaterial color="#000212" transparent opacity={0.34} depthWrite={false} />
       </mesh>
-      <mesh ref={imageRef} position={[0, 0, 0]} scale={[2.58, 2.58, 1]}>
+      <mesh ref={bodyRef} position={[0, 0, 0]} scale={[ROBOT_SCALE, ROBOT_SCALE, 1]}>
         <planeGeometry args={[1, 1, 24, 24]} />
-        <meshBasicMaterial map={texture} transparent alphaTest={0.02} depthWrite={false} toneMapped={false} />
+        <meshBasicMaterial map={bodyTexture} transparent alphaTest={0.02} depthWrite={false} toneMapped={false} />
       </mesh>
+      <group ref={headRef} position={[0, HEAD_PIVOT_Y, 0.055]}>
+        <mesh position={[0, -HEAD_PIVOT_Y, 0]} scale={[ROBOT_SCALE, ROBOT_SCALE, 1]}>
+          <planeGeometry args={[1, 1, 24, 24]} />
+          <meshBasicMaterial map={headTexture} transparent alphaTest={0.02} depthWrite={false} toneMapped={false} />
+        </mesh>
+        <group ref={eyeGlintRef} position={[0, 0.28, 0.018]}>
+          {[-0.095, 0.095].map((x) => (
+            <mesh key={x} position={[x, 0, 0]} scale={[0.034, 0.01, 1]}>
+              <circleGeometry args={[1, 24]} />
+              <meshBasicMaterial color={accentColor} transparent opacity={0.55} depthWrite={false} blending={THREE.AdditiveBlending} />
+            </mesh>
+          ))}
+        </group>
+      </group>
     </group>
   );
 }
