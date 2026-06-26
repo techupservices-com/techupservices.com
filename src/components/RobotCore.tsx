@@ -6,7 +6,8 @@ type RobotCoreProps = {
   accent: string;
 };
 
-const VIDEO_SRC = "/images/robot.mp4";
+const FRAME_COUNT = 68;
+const FRAME_PATH = "/images/robot-frames/frame-";
 const DEFAULT_SCRUB_SETTINGS = {
   scrubSmoothing: 0.82,
   fastScrubSmoothing: 0.98,
@@ -45,8 +46,8 @@ const SCRUB_CONTROLS = [
   {
     key: "minSeekDelta",
     label: "MIN_SEEK_DELTA",
-    helper: "Smallest seek update",
-    description: "Sets the minimum time change before the video seeks again. 0 allows every tiny update; higher values reduce seek frequency.",
+    helper: "Smallest redraw update",
+    description: "Sets the minimum frame movement before canvas redraws. 0 allows every tiny update; higher values reduce redraw frequency.",
     min: 0,
     max: 0.002,
     step: 0.0001,
@@ -59,16 +60,35 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
+function getFrameSrc(index: number) {
+  return `${FRAME_PATH}${String(index + 1).padStart(3, "0")}.jpg`;
+}
+
+function drawCover(ctx: CanvasRenderingContext2D, image: HTMLImageElement, width: number, height: number) {
+  const imageRatio = image.naturalWidth / image.naturalHeight;
+  const canvasRatio = width / height;
+  const sourceWidth = imageRatio > canvasRatio ? image.naturalHeight * canvasRatio : image.naturalWidth;
+  const sourceHeight = imageRatio > canvasRatio ? image.naturalHeight : image.naturalWidth / canvasRatio;
+  const sourceX = (image.naturalWidth - sourceWidth) / 2;
+  const sourceY = (image.naturalHeight - sourceHeight) / 2;
+
+  ctx.clearRect(0, 0, width, height);
+  ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, width, height);
+}
+
 export default function RobotCore({ accent }: RobotCoreProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const frameRef = useRef<number | null>(null);
   const settingsRef = useRef<ScrubSettings>(DEFAULT_SCRUB_SETTINGS);
+  const framesRef = useRef<HTMLImageElement[]>([]);
   const [settings, setSettings] = useState<ScrubSettings>(DEFAULT_SCRUB_SETTINGS);
   const [showTuner, setShowTuner] = useState(true);
   const stateRef = useRef({
-    targetTime: 0,
-    smoothTime: 0,
-    duration: 0,
+    targetFrame: 0,
+    smoothFrame: 0,
+    renderedFrame: -1,
+    canvasWidth: 0,
+    canvasHeight: 0,
     reducedMotion: false,
   });
 
@@ -95,75 +115,100 @@ export default function RobotCore({ accent }: RobotCoreProps) {
   }, []);
 
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const canvasElement = canvas;
 
     const state = stateRef.current;
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     state.reducedMotion = mediaQuery.matches;
+    const ctx = canvasElement.getContext("2d");
+    if (!ctx) return;
+    const canvasContext = ctx;
 
-    video.muted = true;
-    video.pause();
+    const frames = Array.from({ length: FRAME_COUNT }, (_, index) => {
+      const image = new Image();
+      image.decoding = "async";
+      image.src = getFrameSrc(index);
+      image.onload = () => {
+        if (index === 0 || index === Math.round(state.smoothFrame)) drawCurrentFrame();
+      };
+      return image;
+    });
+    framesRef.current = frames;
 
-    function syncSeek() {
-      const player = videoRef.current;
-      if (!player || state.reducedMotion || state.duration <= 0) return;
+    function resizeCanvas() {
+      const bounds = canvasElement.getBoundingClientRect();
+      const pixelRatio = window.devicePixelRatio || 1;
+      const nextWidth = Math.max(1, Math.round(bounds.width * pixelRatio));
+      const nextHeight = Math.max(1, Math.round(bounds.height * pixelRatio));
 
-      const distance = state.targetTime - state.smoothTime;
+      if (canvasElement.width !== nextWidth || canvasElement.height !== nextHeight) {
+        canvasElement.width = nextWidth;
+        canvasElement.height = nextHeight;
+        state.canvasWidth = nextWidth;
+        state.canvasHeight = nextHeight;
+        state.renderedFrame = -1;
+        drawCurrentFrame();
+      }
+    }
+
+    function drawCurrentFrame() {
+      const frameIndex = clamp(Math.round(state.smoothFrame), 0, FRAME_COUNT - 1);
+      const image = framesRef.current[frameIndex];
+      if (!image?.complete || image.naturalWidth <= 0) return;
+
+      drawCover(canvasContext, image, canvasElement.width, canvasElement.height);
+      state.renderedFrame = frameIndex;
+    }
+
+    function syncFrame() {
+      if (state.reducedMotion) return;
+
+      const distance = state.targetFrame - state.smoothFrame;
       const currentSettings = settingsRef.current;
       const smoothing = Math.abs(distance) > currentSettings.fastScrubDistance
         ? currentSettings.fastScrubSmoothing
         : currentSettings.scrubSmoothing;
-      state.smoothTime += distance * smoothing;
-      const nextTime = clamp(state.smoothTime, 0, state.duration);
+      const nextFrame = clamp(state.smoothFrame + distance * smoothing, 0, FRAME_COUNT - 1);
+      const nextFrameIndex = Math.round(nextFrame);
 
-      if (Math.abs(nextTime - player.currentTime) > currentSettings.minSeekDelta) {
-        player.currentTime = nextTime;
+      if (Math.abs(nextFrame - state.smoothFrame) > currentSettings.minSeekDelta || nextFrameIndex !== state.renderedFrame) {
+        state.smoothFrame = nextFrame;
+        drawCurrentFrame();
       }
     }
 
     function tick() {
-      syncSeek();
+      syncFrame();
       frameRef.current = window.requestAnimationFrame(tick);
     }
 
     function onPointerMove(event: PointerEvent) {
-      if (state.reducedMotion || event.pointerType === "touch" || state.duration <= 0) return;
+      if (state.reducedMotion || event.pointerType === "touch") return;
       const x = clamp(event.clientX / window.innerWidth, 0, 1);
-      state.targetTime = (1 - x) * state.duration;
-    }
-
-    function onLoadedMetadata() {
-      const player = videoRef.current;
-      if (!player) return;
-      state.duration = Number.isFinite(player.duration) ? player.duration : 0;
-      state.targetTime = 0;
-      state.smoothTime = 0;
-      player.pause();
-      player.currentTime = 0;
+      state.targetFrame = (1 - x) * (FRAME_COUNT - 1);
     }
 
     function onMotionChange(event: MediaQueryListEvent) {
-      const player = videoRef.current;
-      if (!player) return;
       state.reducedMotion = event.matches;
       if (event.matches) {
-        state.targetTime = 0;
-        state.smoothTime = 0;
-        player.pause();
-        player.currentTime = 0;
+        state.targetFrame = 0;
+        state.smoothFrame = 0;
+        drawCurrentFrame();
       }
     }
 
+    resizeCanvas();
     mediaQuery.addEventListener("change", onMotionChange);
     window.addEventListener("pointermove", onPointerMove, { passive: true });
-    video.addEventListener("loadedmetadata", onLoadedMetadata);
+    window.addEventListener("resize", resizeCanvas, { passive: true });
     frameRef.current = window.requestAnimationFrame(tick);
 
     return () => {
       mediaQuery.removeEventListener("change", onMotionChange);
       window.removeEventListener("pointermove", onPointerMove);
-      video.removeEventListener("loadedmetadata", onLoadedMetadata);
+      window.removeEventListener("resize", resizeCanvas);
       if (frameRef.current !== null) window.cancelAnimationFrame(frameRef.current);
     };
   }, []);
@@ -194,20 +239,13 @@ export default function RobotCore({ accent }: RobotCoreProps) {
   return (
     <div className="relative h-full w-full" style={{ ["--accent" as string]: accent }}>
       <div className="absolute inset-[14%] rounded-pill bg-[color:var(--accent)] opacity-20 blur-[46px]" />
-      <video
-        ref={videoRef}
-        className="absolute inset-0 h-full w-full object-cover opacity-100"
-        src={VIDEO_SRC}
-        muted
-        playsInline
-        preload="auto"
-      />
+      <canvas ref={canvasRef} className="absolute inset-0 h-full w-full opacity-100" aria-hidden="true" />
       {showTuner ? (
         <aside className="pointer-events-auto fixed right-4 top-24 z-50 hidden max-h-[calc(100dvh-7rem)] w-80 overflow-y-auto rounded-3xl border border-white/15 bg-slate-950/90 p-4 text-white shadow-2xl shadow-cyan-500/10 backdrop-blur-xl lg:block">
           <div className="mb-4 flex items-start justify-between gap-3 border-b border-white/10 pb-4">
             <div>
               <p className="text-xs uppercase tracking-widest text-cyan-200/80">Robot dashboard</p>
-              <p className="mt-1 text-sm text-white/70">Tune the hero robot, then save and disable this panel.</p>
+              <p className="mt-1 text-sm text-white/70">Tune the canvas frame sequence, then save and disable this panel.</p>
             </div>
             <button
               type="button"
