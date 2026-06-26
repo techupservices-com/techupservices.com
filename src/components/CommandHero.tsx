@@ -37,6 +37,10 @@ const POSITIONS = [
 
 type Point = { x: number; y: number };
 
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
 export default function CommandHero() {
   const sectionRef = useRef<HTMLElement>(null);
   const mouse = useRef<Point>({ x: -999, y: -999 });
@@ -91,6 +95,14 @@ export default function CommandHero() {
     [cursor.x, cursor.y, service.themeColor],
   );
 
+  const cursorNorm = useMemo(() => {
+    if (typeof window === "undefined" || cursor.x < 0 || cursor.y < 0) return { x: 0.5, y: 0.5 };
+    return {
+      x: clamp(cursor.x / window.innerWidth, 0, 1),
+      y: clamp(cursor.y / window.innerHeight, 0, 1),
+    };
+  }, [cursor.x, cursor.y]);
+
   return (
     <section
       ref={sectionRef}
@@ -112,7 +124,7 @@ export default function CommandHero() {
       <div className="relative z-30 flex h-full flex-col px-gutter pb-s7 pt-s10">
         <div className="flex flex-1 items-center justify-center">
           <CyberCore active={active} />
-          <ServiceConstellation active={active} setActive={setActive} />
+          <ServiceConstellation active={active} cursor={cursorNorm} entered={entered && !reduceMotion} setActive={setActive} />
         </div>
 
         <MobileServiceSelector active={active} setActive={setActive} />
@@ -129,7 +141,7 @@ export default function CommandHero() {
 function BaseAtmosphere() {
   return (
     <div className="absolute inset-0 z-0" aria-hidden="true">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_44%,color-mix(in_srgb,var(--brand-grad-mid)_20%,transparent),transparent_24rem),linear-gradient(180deg,var(--surface-base),var(--surface-sunken))]" />
+      <div className="robot-world-atmosphere absolute inset-0" />
       <div className="absolute inset-0 opacity-[0.08] [background-image:radial-gradient(var(--ink-strong)_1px,transparent_1px)] [background-size:24px_24px]" />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,color-mix(in_srgb,var(--surface-base)_44%,transparent)_58%,var(--surface-base)_100%)]" />
     </div>
@@ -221,17 +233,31 @@ function ActiveServicePanel({ service }: { service: (typeof services)[number] })
   );
 }
 
-function ServiceConstellation({ active, setActive }: { active: number; setActive: (index: number) => void }) {
+function ServiceConstellation({
+  active,
+  cursor,
+  entered,
+  setActive,
+}: {
+  active: number;
+  cursor: Point;
+  entered: boolean;
+  setActive: (index: number) => void;
+}) {
   return (
     <ol className="absolute inset-0 z-40 hidden md:block" aria-label="Service discovery atlas">
       {services.map((service, index) => {
         const selected = index === active;
         const position = POSITIONS[index];
+        const cardX = Number.parseFloat(position.left) / 100;
+        const cardY = Number.parseFloat(position.top) / 100;
+        const proximity = entered ? clamp(1 - Math.hypot(cursor.x - cardX, cursor.y - cardY) * 2.25, 0, 1) : 0;
         return (
           <li key={service.id} className="absolute -translate-x-1/2 -translate-y-1/2" style={position}>
             <ServiceAtlasCard
               service={service}
               selected={selected}
+              proximity={proximity}
               onActivate={() => setActive(index)}
             />
           </li>
@@ -244,10 +270,12 @@ function ServiceConstellation({ active, setActive }: { active: number; setActive
 function ServiceAtlasCard({
   service,
   selected,
+  proximity,
   onActivate,
 }: {
   service: (typeof services)[number];
   selected: boolean;
+  proximity: number;
   onActivate: () => void;
 }) {
   function onPointerMove(event: ReactPointerEvent<HTMLButtonElement>) {
@@ -267,7 +295,13 @@ function ServiceAtlasCard({
         className={`service-atlas-card group min-h-[7.5rem] w-full rounded-xl p-s5 text-left transition-all duration-slow ease-emphasized focus-visible:border-[color:var(--accent)] ${
           selected ? "is-active scale-[1.04]" : "opacity-55 hover:opacity-100"
         }`}
-        style={{ ["--accent" as string]: service.themeColor } as CSSProperties}
+        style={{
+          ["--accent" as string]: service.themeColor,
+          ["--card-proximity" as string]: proximity.toFixed(3),
+          ["--card-accent-amount" as string]: `${10 + proximity * 34}%`,
+          ["--card-ember-amount" as string]: `${5 + proximity * 16}%`,
+          ["--card-glow-size" as string]: `${proximity * 2}rem`,
+        } as CSSProperties}
         aria-pressed={selected}
       >
         <span className="block max-w-[15rem] font-display text-fs-h4 font-bold leading-[1.02] tracking-[var(--tracking-tight)] text-ink-strong">

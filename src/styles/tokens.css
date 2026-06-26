@@ -42,6 +42,11 @@
   --command-body:     #C8C5BE;
   --command-muted:    #8C8A85;
 
+  /* Robot footage environment — off-black shell + amber backlight. */
+  --robot-void:       #040604;
+  --robot-ember:      #D98526;
+  --robot-ember-soft: #6F3A16;
+
   /* ----------------------------------------------------------
    * Type — fluid scale via clamp() (design.md §1)
    * Lower bound = mobile (375px), upper = desktop (1440px)

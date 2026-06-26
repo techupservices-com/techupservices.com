@@ -9,17 +9,10 @@ type RobotCoreProps = {
 type Direction = "center" | "lower-left" | "left" | "upper-left" | "up" | "upper-right" | "right" | "lower-right";
 
 const DIRECTION_PATH = "/images/robot-directions/";
-const POINTER_SMOOTHING = 0.34;
-const CENTER_DEAD_ZONE = 0.22;
-const DIRECTIONS: Array<{ name: Direction; x: number; y: number }> = [
-  { name: "lower-left", x: -1, y: 1 },
-  { name: "left", x: -1, y: 0 },
-  { name: "upper-left", x: -1, y: -1 },
-  { name: "up", x: 0, y: -1 },
-  { name: "upper-right", x: 1, y: -1 },
-  { name: "right", x: 1, y: 0 },
-  { name: "lower-right", x: 1, y: 1 },
-];
+const POINTER_SMOOTHING = 0.42;
+const CENTER_DEAD_ZONE = 0.16;
+const TRANSITION_MS = 180;
+const DIRECTIONS: Direction[] = ["center", "lower-left", "left", "upper-left", "up", "upper-right", "right", "lower-right"];
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -33,21 +26,28 @@ function getNearestDirection(x: number, y: number): Direction {
   const distanceFromCenter = Math.hypot(x, y);
   if (distanceFromCenter < CENTER_DEAD_ZONE) return "center";
 
-  let nearest = DIRECTIONS[0];
-  let nearestDistance = Number.POSITIVE_INFINITY;
-
-  for (const direction of DIRECTIONS) {
-    const distance = Math.hypot(x - direction.x, y - direction.y);
-    if (distance < nearestDistance) {
-      nearest = direction;
-      nearestDistance = distance;
-    }
+  if (y < -0.28) {
+    if (x < -0.22) return "upper-left";
+    if (x > 0.22) return "upper-right";
+    return "up";
   }
 
-  return nearest.name;
+  if (y > 0.42) {
+    if (x < -0.24) return "lower-left";
+    if (x > 0.24) return "lower-right";
+  }
+
+  if (x < -0.2) return "left";
+  if (x > 0.2) return "right";
+
+  return "center";
 }
 
-function drawCover(ctx: CanvasRenderingContext2D, image: HTMLImageElement, width: number, height: number) {
+function easeOutCubic(value: number) {
+  return 1 - Math.pow(1 - value, 3);
+}
+
+function drawCover(ctx: CanvasRenderingContext2D, image: HTMLImageElement, width: number, height: number, clear = true) {
   const imageRatio = image.naturalWidth / image.naturalHeight;
   const canvasRatio = width / height;
   const sourceWidth = imageRatio > canvasRatio ? image.naturalHeight * canvasRatio : image.naturalWidth;
@@ -55,7 +55,7 @@ function drawCover(ctx: CanvasRenderingContext2D, image: HTMLImageElement, width
   const sourceX = (image.naturalWidth - sourceWidth) / 2;
   const sourceY = (image.naturalHeight - sourceHeight) / 2;
 
-  ctx.clearRect(0, 0, width, height);
+  if (clear) ctx.clearRect(0, 0, width, height);
   ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, width, height);
 }
 
@@ -77,7 +77,10 @@ export default function RobotCore({ accent }: RobotCoreProps) {
     targetY: 0,
     smoothX: 0,
     smoothY: 0,
-    renderedDirection: null as Direction | null,
+    fromDirection: "center" as Direction,
+    toDirection: "center" as Direction,
+    renderedDirection: "center" as Direction,
+    transitionStartedAt: 0,
     canvasWidth: 0,
     canvasHeight: 0,
     reducedMotion: false,
@@ -95,13 +98,12 @@ export default function RobotCore({ accent }: RobotCoreProps) {
     if (!ctx) return;
     const canvasContext = ctx;
 
-    const directions: Direction[] = ["center", "lower-left", "left", "upper-left", "up", "upper-right", "right", "lower-right"];
-    for (const direction of directions) {
+    for (const direction of DIRECTIONS) {
       const image = new Image();
       image.decoding = "async";
       image.src = getDirectionSrc(direction);
       image.onload = () => {
-        if (direction === "center" || direction === state.renderedDirection) drawDirection(getCurrentDirection());
+        if (direction === "center" || direction === state.toDirection) drawStaticDirection(getCurrentDirection());
       };
       directionImagesRef.current[direction] = image;
     }
@@ -117,17 +119,50 @@ export default function RobotCore({ accent }: RobotCoreProps) {
         canvasElement.height = nextHeight;
         state.canvasWidth = nextWidth;
         state.canvasHeight = nextHeight;
-        state.renderedDirection = null;
-        drawDirection(getCurrentDirection());
+        drawStaticDirection(getCurrentDirection());
       }
     }
 
-    function drawDirection(direction: Direction) {
+    function drawImage(direction: Direction, alpha: number) {
+      const image = directionImagesRef.current[direction];
+      if (!image?.complete || image.naturalWidth <= 0) return;
+
+      canvasContext.globalAlpha = alpha;
+      drawCover(canvasContext, image, canvasElement.width, canvasElement.height, false);
+      canvasContext.globalAlpha = 1;
+    }
+
+    function drawStaticDirection(direction: Direction) {
       const image = directionImagesRef.current[direction];
       if (!image?.complete || image.naturalWidth <= 0) return;
 
       drawCover(canvasContext, image, canvasElement.width, canvasElement.height);
+      state.fromDirection = direction;
+      state.toDirection = direction;
       state.renderedDirection = direction;
+      state.transitionStartedAt = performance.now();
+    }
+
+    function drawTransition(now: number) {
+      const elapsed = now - state.transitionStartedAt;
+      const progress = clamp(elapsed / TRANSITION_MS, 0, 1);
+      const eased = easeOutCubic(progress);
+
+      canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
+      drawImage(state.fromDirection, 1);
+      drawImage(state.toDirection, eased);
+
+      if (progress >= 1) {
+        state.fromDirection = state.toDirection;
+        state.renderedDirection = state.toDirection;
+      }
+    }
+
+    function startTransition(direction: Direction) {
+      if (direction === state.toDirection) return;
+      state.fromDirection = state.toDirection;
+      state.toDirection = direction;
+      state.transitionStartedAt = performance.now();
     }
 
     function getCurrentDirection() {
@@ -136,8 +171,10 @@ export default function RobotCore({ accent }: RobotCoreProps) {
     }
 
     function syncDirection() {
+      const now = performance.now();
+
       if (state.reducedMotion) {
-        if (state.renderedDirection !== "center") drawDirection("center");
+        if (state.renderedDirection !== "center") drawStaticDirection("center");
         return;
       }
 
@@ -145,7 +182,8 @@ export default function RobotCore({ accent }: RobotCoreProps) {
       state.smoothY += (state.targetY - state.smoothY) * POINTER_SMOOTHING;
 
       const direction = getCurrentDirection();
-      if (direction !== state.renderedDirection) drawDirection(direction);
+      startTransition(direction);
+      drawTransition(now);
     }
 
     function tick() {
@@ -166,7 +204,7 @@ export default function RobotCore({ accent }: RobotCoreProps) {
         state.targetY = 0;
         state.smoothX = 0;
         state.smoothY = 0;
-        drawDirection("center");
+        drawStaticDirection("center");
       }
     }
 
