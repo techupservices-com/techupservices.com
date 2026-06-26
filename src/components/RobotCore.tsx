@@ -7,8 +7,10 @@ type RobotCoreProps = {
 };
 
 const VIDEO_SRC = "/images/robot.mp4";
-const SCRUB_SMOOTHING = 0.42;
-const MIN_SEEK_DELTA = 0.006;
+const SCRUB_SMOOTHING = 0.5;
+const FAST_SCRUB_SMOOTHING = 0.82;
+const FAST_SCRUB_DISTANCE = 0.22;
+const MIN_SEEK_DELTA = 0.003;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -40,7 +42,9 @@ export default function RobotCore({ accent }: RobotCoreProps) {
       const player = videoRef.current;
       if (!player || state.reducedMotion || state.isSeeking || state.duration <= 0) return;
 
-      state.smoothTime += (state.targetTime - state.smoothTime) * SCRUB_SMOOTHING;
+      const distance = state.targetTime - state.smoothTime;
+      const smoothing = Math.abs(distance) > FAST_SCRUB_DISTANCE ? FAST_SCRUB_SMOOTHING : SCRUB_SMOOTHING;
+      state.smoothTime += distance * smoothing;
       const nextTime = clamp(state.smoothTime, 0, state.duration);
 
       if (Math.abs(nextTime - player.currentTime) > MIN_SEEK_DELTA) {
