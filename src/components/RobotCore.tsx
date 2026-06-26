@@ -6,7 +6,7 @@ type RobotCoreProps = {
   accent: string;
 };
 
-const VIDEO_SRC = "/images/robot_video.mp4";
+const VIDEO_SRC = "/images/robot.mp4";
 const SCRUB_SMOOTHING = 0.13;
 const MIN_SEEK_DELTA = 0.018;
 
