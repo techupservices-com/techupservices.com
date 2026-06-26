@@ -6,21 +6,45 @@ type RobotCoreProps = {
   accent: string;
 };
 
-const FRAME_COUNT = 68;
-const FRAME_PATH = "/images/robot-frames/frame-";
-const SCRUB_SETTINGS = {
-  scrubSmoothing: 0.82,
-  fastScrubSmoothing: 0.98,
-  fastScrubDistance: 0.07,
-  minSeekDelta: 0.0015,
-};
+type Direction = "center" | "lower-left" | "left" | "upper-left" | "up" | "upper-right" | "right" | "lower-right";
+
+const DIRECTION_PATH = "/images/robot-directions/";
+const POINTER_SMOOTHING = 0.34;
+const CENTER_DEAD_ZONE = 0.22;
+const DIRECTIONS: Array<{ name: Direction; x: number; y: number }> = [
+  { name: "lower-left", x: -1, y: 1 },
+  { name: "left", x: -1, y: 0 },
+  { name: "upper-left", x: -1, y: -1 },
+  { name: "up", x: 0, y: -1 },
+  { name: "upper-right", x: 1, y: -1 },
+  { name: "right", x: 1, y: 0 },
+  { name: "lower-right", x: 1, y: 1 },
+];
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
-function getFrameSrc(index: number) {
-  return `${FRAME_PATH}${String(index + 1).padStart(3, "0")}.jpg`;
+function getDirectionSrc(direction: Direction) {
+  return `${DIRECTION_PATH}${direction}.jpg`;
+}
+
+function getNearestDirection(x: number, y: number): Direction {
+  const distanceFromCenter = Math.hypot(x, y);
+  if (distanceFromCenter < CENTER_DEAD_ZONE) return "center";
+
+  let nearest = DIRECTIONS[0];
+  let nearestDistance = Number.POSITIVE_INFINITY;
+
+  for (const direction of DIRECTIONS) {
+    const distance = Math.hypot(x - direction.x, y - direction.y);
+    if (distance < nearestDistance) {
+      nearest = direction;
+      nearestDistance = distance;
+    }
+  }
+
+  return nearest.name;
 }
 
 function drawCover(ctx: CanvasRenderingContext2D, image: HTMLImageElement, width: number, height: number) {
@@ -37,12 +61,23 @@ function drawCover(ctx: CanvasRenderingContext2D, image: HTMLImageElement, width
 
 export default function RobotCore({ accent }: RobotCoreProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const frameRef = useRef<number | null>(null);
-  const framesRef = useRef<HTMLImageElement[]>([]);
+  const animationFrameRef = useRef<number | null>(null);
+  const directionImagesRef = useRef<Record<Direction, HTMLImageElement | undefined>>({
+    center: undefined,
+    "lower-left": undefined,
+    left: undefined,
+    "upper-left": undefined,
+    up: undefined,
+    "upper-right": undefined,
+    right: undefined,
+    "lower-right": undefined,
+  });
   const stateRef = useRef({
-    targetFrame: 0,
-    smoothFrame: 0,
-    renderedFrame: -1,
+    targetX: 0,
+    targetY: 0,
+    smoothX: 0,
+    smoothY: 0,
+    renderedDirection: null as Direction | null,
     canvasWidth: 0,
     canvasHeight: 0,
     reducedMotion: false,
@@ -60,16 +95,16 @@ export default function RobotCore({ accent }: RobotCoreProps) {
     if (!ctx) return;
     const canvasContext = ctx;
 
-    const frames = Array.from({ length: FRAME_COUNT }, (_, index) => {
+    const directions: Direction[] = ["center", "lower-left", "left", "upper-left", "up", "upper-right", "right", "lower-right"];
+    for (const direction of directions) {
       const image = new Image();
       image.decoding = "async";
-      image.src = getFrameSrc(index);
+      image.src = getDirectionSrc(direction);
       image.onload = () => {
-        if (index === 0 || index === Math.round(state.smoothFrame)) drawCurrentFrame();
+        if (direction === "center" || direction === state.renderedDirection) drawDirection(getCurrentDirection());
       };
-      return image;
-    });
-    framesRef.current = frames;
+      directionImagesRef.current[direction] = image;
+    }
 
     function resizeCanvas() {
       const bounds = canvasElement.getBoundingClientRect();
@@ -82,53 +117,56 @@ export default function RobotCore({ accent }: RobotCoreProps) {
         canvasElement.height = nextHeight;
         state.canvasWidth = nextWidth;
         state.canvasHeight = nextHeight;
-        state.renderedFrame = -1;
-        drawCurrentFrame();
+        state.renderedDirection = null;
+        drawDirection(getCurrentDirection());
       }
     }
 
-    function drawCurrentFrame() {
-      const frameIndex = clamp(Math.round(state.smoothFrame), 0, FRAME_COUNT - 1);
-      const image = framesRef.current[frameIndex];
+    function drawDirection(direction: Direction) {
+      const image = directionImagesRef.current[direction];
       if (!image?.complete || image.naturalWidth <= 0) return;
 
       drawCover(canvasContext, image, canvasElement.width, canvasElement.height);
-      state.renderedFrame = frameIndex;
+      state.renderedDirection = direction;
     }
 
-    function syncFrame() {
-      if (state.reducedMotion) return;
+    function getCurrentDirection() {
+      if (state.reducedMotion) return "center";
+      return getNearestDirection(state.smoothX, state.smoothY);
+    }
 
-      const distance = state.targetFrame - state.smoothFrame;
-      const smoothing = Math.abs(distance) > SCRUB_SETTINGS.fastScrubDistance
-        ? SCRUB_SETTINGS.fastScrubSmoothing
-        : SCRUB_SETTINGS.scrubSmoothing;
-      const nextFrame = clamp(state.smoothFrame + distance * smoothing, 0, FRAME_COUNT - 1);
-      const nextFrameIndex = Math.round(nextFrame);
-
-      if (Math.abs(nextFrame - state.smoothFrame) > SCRUB_SETTINGS.minSeekDelta || nextFrameIndex !== state.renderedFrame) {
-        state.smoothFrame = nextFrame;
-        drawCurrentFrame();
+    function syncDirection() {
+      if (state.reducedMotion) {
+        if (state.renderedDirection !== "center") drawDirection("center");
+        return;
       }
+
+      state.smoothX += (state.targetX - state.smoothX) * POINTER_SMOOTHING;
+      state.smoothY += (state.targetY - state.smoothY) * POINTER_SMOOTHING;
+
+      const direction = getCurrentDirection();
+      if (direction !== state.renderedDirection) drawDirection(direction);
     }
 
     function tick() {
-      syncFrame();
-      frameRef.current = window.requestAnimationFrame(tick);
+      syncDirection();
+      animationFrameRef.current = window.requestAnimationFrame(tick);
     }
 
     function onPointerMove(event: PointerEvent) {
       if (state.reducedMotion || event.pointerType === "touch") return;
-      const x = clamp(event.clientX / window.innerWidth, 0, 1);
-      state.targetFrame = (1 - x) * (FRAME_COUNT - 1);
+      state.targetX = clamp(event.clientX / window.innerWidth, 0, 1) * 2 - 1;
+      state.targetY = clamp(event.clientY / window.innerHeight, 0, 1) * 2 - 1;
     }
 
     function onMotionChange(event: MediaQueryListEvent) {
       state.reducedMotion = event.matches;
       if (event.matches) {
-        state.targetFrame = 0;
-        state.smoothFrame = 0;
-        drawCurrentFrame();
+        state.targetX = 0;
+        state.targetY = 0;
+        state.smoothX = 0;
+        state.smoothY = 0;
+        drawDirection("center");
       }
     }
 
@@ -136,13 +174,13 @@ export default function RobotCore({ accent }: RobotCoreProps) {
     mediaQuery.addEventListener("change", onMotionChange);
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     window.addEventListener("resize", resizeCanvas, { passive: true });
-    frameRef.current = window.requestAnimationFrame(tick);
+    animationFrameRef.current = window.requestAnimationFrame(tick);
 
     return () => {
       mediaQuery.removeEventListener("change", onMotionChange);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("resize", resizeCanvas);
-      if (frameRef.current !== null) window.cancelAnimationFrame(frameRef.current);
+      if (animationFrameRef.current !== null) window.cancelAnimationFrame(animationFrameRef.current);
     };
   }, []);
 
