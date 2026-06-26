@@ -7,8 +7,8 @@ type RobotCoreProps = {
 };
 
 const VIDEO_SRC = "/images/robot.mp4";
-const SCRUB_SMOOTHING = 0.13;
-const MIN_SEEK_DELTA = 0.018;
+const SCRUB_SMOOTHING = 0.42;
+const MIN_SEEK_DELTA = 0.006;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -73,6 +73,7 @@ export default function RobotCore({ accent }: RobotCoreProps) {
 
     function onSeeked() {
       state.isSeeking = false;
+      syncSeek();
     }
 
     function onMotionChange(event: MediaQueryListEvent) {
