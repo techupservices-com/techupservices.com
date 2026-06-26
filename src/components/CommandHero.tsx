@@ -94,7 +94,6 @@ export default function CommandHero() {
       style={style}
       aria-label="TechUpServices service atlas"
     >
-      <BaseAtmosphere />
       <CyberCore active={active} />
 
       <div className="relative z-30 flex min-h-[calc(100dvh-var(--space-10))] items-center md:h-full md:min-h-0 md:px-gutter md:pb-s7 md:pt-s10">
@@ -103,15 +102,6 @@ export default function CommandHero() {
         </div>
       </div>
     </section>
-  );
-}
-
-function BaseAtmosphere() {
-  return (
-    <div className="absolute inset-0 z-0" aria-hidden="true">
-      <div className="robot-world-atmosphere absolute inset-0" />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,color-mix(in_srgb,var(--surface-base)_44%,transparent)_58%,var(--surface-base)_100%)]" />
-    </div>
   );
 }
 
@@ -206,7 +196,6 @@ function CyberCore({ active }: { active: number }) {
       style={{ ["--accent" as string]: service.themeColor } as CSSProperties}
       aria-hidden="true"
     >
-      <div className="robot-video-aura absolute inset-0 z-0 bg-[color:var(--accent)]" />
       <div className="robot-3d-core absolute inset-0 z-10">
         <RobotCore accent={service.themeColor} />
       </div>

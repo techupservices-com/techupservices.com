@@ -245,14 +245,6 @@
   background: var(--robot-void);
 }
 
-.robot-world-atmosphere {
-  background:
-    radial-gradient(circle at 50% 43%, color-mix(in srgb, var(--robot-ember) 28%, transparent), transparent 24rem),
-    radial-gradient(circle at 50% 58%, color-mix(in srgb, var(--robot-ember-soft) 26%, transparent), transparent 36rem),
-    radial-gradient(circle at var(--cursor-x) var(--cursor-y), color-mix(in srgb, var(--accent) 10%, transparent), transparent 22rem),
-    linear-gradient(180deg, color-mix(in srgb, var(--robot-void) 92%, var(--command-base)), var(--robot-void) 58%, var(--command-sunken));
-}
-
 .service-atlas-card {
   position: relative;
   overflow: hidden;
@@ -371,12 +363,6 @@
   display: block;
   height: 100%;
   width: 100%;
-}
-
-.robot-video-aura {
-  filter: blur(120px);
-  opacity: 0.08;
-  transform: scale(0.82);
 }
 
 @media (prefers-reduced-motion: reduce) {
