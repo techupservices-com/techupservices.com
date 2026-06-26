@@ -1,28 +1,9 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
-import { motion } from "framer-motion";
-import { ArrowDown, CalendarDays } from "lucide-react";
 import { services } from "@/data/services";
-import { DUR, EASE, useMotionSafe } from "@/lib/motion";
+import { useMotionSafe } from "@/lib/motion";
 import TiltCard from "@/components/TiltCard";
-import TextReveal from "@/components/TextReveal";
-
-const RobotCore = dynamic(() => import("@/components/RobotCore"), {
-  ssr: false,
-  loading: () => <div className="h-full w-full bg-surface-sunken" />,
-});
-
-const SERVICE_COPY: Record<string, string> = {
-  "ai-automation": "Reclaim operational hours with workflows that keep moving after your team logs off.",
-  "social-media": "Build a sharper content rhythm that turns attention into qualified demand.",
-  "website-development": "Ship a premium storefront that earns trust before the first call.",
-  "mobile-app": "Create mobile products that stay useful beyond the first tap.",
-  "whatsapp-automation": "Turn follow-ups, support, and lead routing into an owned communication system.",
-  "digital-marketing": "Connect campaigns, content, and conversion signals into measurable growth.",
-  "tech-consulting": "Make the right technical calls before fragile systems become expensive.",
-};
 
 const POSITIONS = [
   { left: "20%", top: "26%" },
@@ -41,7 +22,6 @@ function clamp(value: number, min: number, max: number) {
 }
 
 export default function CommandHero() {
-  const sectionRef = useRef<HTMLElement>(null);
   const mouse = useRef<Point>({ x: -999, y: -999 });
   const smooth = useRef<Point>({ x: -999, y: -999 });
   const rafRef = useRef<number | null>(null);
@@ -83,14 +63,13 @@ export default function CommandHero() {
     };
   }, [reduceMotion]);
 
-  const service = services[active];
   const style = useMemo(
     () => ({
-      ["--accent" as string]: service.themeColor,
+      ["--accent" as string]: services[active].themeColor,
       ["--cursor-x" as string]: `${cursor.x}px`,
       ["--cursor-y" as string]: `${cursor.y}px`,
     } as CSSProperties),
-    [cursor.x, cursor.y, service.themeColor],
+    [active, cursor.x, cursor.y],
   );
 
   const cursorNorm = useMemo(() => {
@@ -103,33 +82,17 @@ export default function CommandHero() {
 
   return (
     <section
-      ref={sectionRef}
       onPointerDown={updateTouchCursor}
       onPointerMove={updateTouchCursor}
-      className="cyber-hero relative h-dvh min-h-[720px] overflow-hidden bg-surface-base text-ink-strong"
+      className="cyber-hero relative min-h-dvh overflow-hidden bg-surface-base px-gutter py-s10 text-ink-strong md:h-dvh md:min-h-[720px] md:p-0"
       style={style}
       aria-label="TechUpServices service atlas"
     >
       <BaseAtmosphere />
 
-      <div className="absolute inset-x-0 top-[12%] z-20 pointer-events-none px-gutter text-center">
-        <div className="cyber-watermark font-display font-bold uppercase leading-none tracking-[-0.08em]">
-          Infrastructure
-        </div>
-      </div>
-
-      <CyberCore active={active} />
-
-      <div className="relative z-30 flex h-full flex-col px-gutter pb-s7 pt-s10">
+      <div className="relative z-30 flex min-h-[calc(100dvh-var(--space-10))] items-center md:h-full md:min-h-0 md:px-gutter md:pb-s7 md:pt-s10">
         <div className="flex flex-1 items-center justify-center">
           <ServiceConstellation active={active} cursor={cursorNorm} entered={entered && !reduceMotion} setActive={setActive} />
-        </div>
-
-        <MobileServiceSelector active={active} setActive={setActive} />
-
-        <div className="grid gap-s5 md:grid-cols-[1fr_0.82fr] md:items-end">
-          <HeroStatement />
-          <ActiveServicePanel service={service} />
         </div>
       </div>
     </section>
@@ -139,79 +102,9 @@ export default function CommandHero() {
 function BaseAtmosphere() {
   return (
     <div className="absolute inset-0 z-0" aria-hidden="true">
-      <div className="robot-world-atmosphere absolute inset-0" />
+      <div className="service-atlas-atmosphere absolute inset-0" />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,color-mix(in_srgb,var(--surface-base)_44%,transparent)_58%,var(--surface-base)_100%)]" />
     </div>
-  );
-}
-
-function HeroStatement() {
-  return (
-    <div className="max-w-4xl">
-      <motion.div
-        initial={{ opacity: 0, y: 28, filter: "blur(12px)" }}
-        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-        transition={{ duration: 1.1, ease: EASE.emphasized, delay: 0.15 }}
-        className="eyebrow text-ink-muted"
-      >
-        Premium AI automation and digital infrastructure
-      </motion.div>
-      <TextReveal
-        as="h1"
-        whileInView={false}
-        delay={0.24}
-        stagger={0.1}
-        segments={[[{ text: "Automate." }], [{ text: "Build. " }, { text: "Scale.", className: "text-brand-gradient" }]]}
-        className="mt-s4 font-display text-fs-display font-bold leading-[0.88] tracking-[var(--tracking-display)] text-ink-strong"
-      />
-      <motion.p
-        initial={{ opacity: 0, y: 18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.9, ease: EASE.emphasized, delay: 0.58 }}
-        className="mt-s5 max-w-2xl text-fs-body-lg text-ink-body"
-      >
-        Explore the atlas to reveal the service systems TechUpServices builds for founders, operators, and growth teams.
-      </motion.p>
-      <motion.div
-        initial={{ opacity: 0, y: 18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: EASE.emphasized, delay: 0.76 }}
-        className="mt-s6 flex flex-wrap items-center gap-s4"
-      >
-        <a href="#talk" className="btn-primary">
-          <CalendarDays size={18} />
-          Schedule a discovery call
-        </a>
-        <a href="#services" className="btn-secondary">
-          Explore Services
-          <ArrowDown size={16} />
-        </a>
-      </motion.div>
-    </div>
-  );
-}
-
-function ActiveServicePanel({ service }: { service: (typeof services)[number] }) {
-  return (
-    <motion.aside
-      key={service.id}
-      initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
-      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-      transition={{ duration: DUR.slow, ease: EASE.emphasized }}
-      className="command-surface scanline justify-self-start rounded-xl p-s5 md:justify-self-end md:max-w-md"
-      style={{ ["--accent" as string]: service.themeColor } as CSSProperties}
-    >
-      <div className="flex items-center justify-between gap-s4 text-fs-caption uppercase tracking-[var(--tracking-eyebrow)] text-ink-muted">
-        <span className="inline-flex items-center gap-s3">
-          <span className="h-px w-s7 bg-[color:var(--accent)]" />
-          Active service
-        </span>
-        <span className="h-s2 w-s2 rounded-pill bg-[color:var(--accent)] shadow-2" aria-hidden="true" />
-      </div>
-      <h2 className="mt-s3 font-display text-fs-h3 font-bold text-ink-strong">{service.name}</h2>
-      <p className="mt-s2 text-fs-body font-medium text-ink-strong/80">{service.tagline}</p>
-      <p className="mt-s4 text-fs-body text-ink-body">{SERVICE_COPY[service.id]}</p>
-    </motion.aside>
   );
 }
 
@@ -227,7 +120,7 @@ function ServiceConstellation({
   setActive: (index: number) => void;
 }) {
   return (
-    <ol className="absolute inset-0 z-40 hidden md:block" aria-label="Service discovery atlas">
+    <ol className="relative z-40 grid w-full max-w-[42rem] grid-cols-1 gap-s3 sm:grid-cols-2 md:absolute md:inset-0 md:block md:max-w-none" aria-label="Service discovery atlas">
       {services.map((service, index) => {
         const selected = index === active;
         const position = POSITIONS[index];
@@ -235,7 +128,7 @@ function ServiceConstellation({
         const cardY = Number.parseFloat(position.top) / 100;
         const proximity = entered ? clamp(1 - Math.hypot(cursor.x - cardX, cursor.y - cardY) * 2.25, 0, 1) : 0;
         return (
-          <li key={service.id} className="absolute -translate-x-1/2 -translate-y-1/2" style={position}>
+          <li key={service.id} className="md:absolute md:-translate-x-1/2 md:-translate-y-1/2" style={position}>
             <ServiceAtlasCard
               service={service}
               selected={selected}
@@ -267,14 +160,14 @@ function ServiceAtlasCard({
   }
 
   return (
-    <TiltCard className="w-[clamp(14rem,19vw,18.75rem)]">
+    <TiltCard className="w-full md:w-[clamp(14rem,19vw,18.75rem)]">
       <button
         type="button"
         onPointerEnter={onActivate}
         onPointerMove={onPointerMove}
         onFocus={onActivate}
         onClick={onActivate}
-        className={`service-atlas-card group min-h-[7.5rem] w-full rounded-xl p-s5 text-left transition-all duration-slow ease-emphasized focus-visible:border-[color:var(--accent)] ${
+        className={`service-atlas-card group min-h-[6.75rem] w-full rounded-xl p-s4 text-left transition-all duration-slow ease-emphasized focus-visible:border-[color:var(--accent)] md:min-h-[7.5rem] md:p-s5 ${
           selected ? "is-active scale-[1.04]" : "opacity-55 hover:opacity-100"
         }`}
         style={{
@@ -294,70 +187,5 @@ function ServiceAtlasCard({
         </span>
       </button>
     </TiltCard>
-  );
-}
-
-function MobileServiceSelector({ active, setActive }: { active: number; setActive: (index: number) => void }) {
-  const service = services[active];
-
-  return (
-    <div className="relative z-50 -mt-s3 mb-s5 md:hidden" aria-label="Select a service">
-      <motion.div
-        key={service.id}
-        initial={{ opacity: 0, y: 12, filter: "blur(8px)" }}
-        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-        transition={{ duration: DUR.slow, ease: EASE.emphasized }}
-        className="command-surface scanline mb-s3 rounded-xl p-s4"
-        style={{ ["--accent" as string]: service.themeColor } as CSSProperties}
-      >
-        <div className="flex items-center justify-between gap-s3 text-fs-caption uppercase tracking-[var(--tracking-eyebrow)] text-ink-muted">
-          <span>Tap atlas</span>
-          <span className="h-s2 w-s8 rounded-pill bg-[color:var(--accent)] shadow-2" aria-hidden="true" />
-        </div>
-        <div className="mt-s3 font-display text-fs-h4 font-bold leading-tight text-ink-strong">{service.name}</div>
-        <p className="mt-s2 text-fs-body text-ink-body">{service.tagline}</p>
-      </motion.div>
-
-      <div className="flex snap-x gap-s2 overflow-x-auto pb-s2 [scrollbar-width:thin]">
-        {services.map((service, index) => {
-          const selected = active === index;
-          return (
-            <button
-              key={service.id}
-              type="button"
-              onClick={() => setActive(index)}
-              className={`min-h-[56px] w-[10.75rem] flex-none snap-start rounded-lg border px-s3 py-s3 text-left text-fs-caption transition-all duration-base active:scale-[0.98] ${selected ? "shadow-2" : "opacity-70"}`}
-              style={{
-                borderColor: selected ? service.themeColor : "var(--surface-line)",
-                color: selected ? "var(--ink-strong)" : "var(--ink-muted)",
-                background: selected
-                  ? `linear-gradient(135deg, color-mix(in srgb, ${service.themeColor} 18%, transparent), var(--surface-raised))`
-                  : "transparent",
-              }}
-              aria-pressed={selected}
-            >
-              <span className="block font-display font-bold text-ink-strong">{service.name}</span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function CyberCore({ active }: { active: number }) {
-  const service = services[active];
-
-  return (
-    <div
-      className="pointer-events-none absolute inset-0 z-10"
-      style={{ ["--accent" as string]: service.themeColor } as CSSProperties}
-      aria-hidden="true"
-    >
-      <div className="robot-video-aura absolute inset-0 z-0 bg-[color:var(--accent)]" />
-      <div className="robot-3d-core absolute inset-0 z-10">
-        <RobotCore accent={service.themeColor} />
-      </div>
-    </div>
   );
 }

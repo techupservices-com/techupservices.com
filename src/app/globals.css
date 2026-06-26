@@ -234,7 +234,7 @@
 }
 
 .cyber-hero {
-  --surface-base: var(--robot-void);
+  --surface-base: var(--command-base);
   --surface-raised: var(--command-raised);
   --surface-sunken: var(--command-sunken);
   --surface-line: var(--command-line);
@@ -242,25 +242,16 @@
   --ink-body: var(--command-body);
   --ink-muted: var(--command-muted);
   --ink-faint: color-mix(in srgb, var(--command-muted) 64%, transparent);
-  background: var(--robot-void);
+  background: var(--command-base);
 }
 
-.robot-world-atmosphere {
+.service-atlas-atmosphere {
   background:
-    radial-gradient(circle at 50% 43%, color-mix(in srgb, var(--robot-ember) 28%, transparent), transparent 24rem),
-    radial-gradient(circle at 50% 58%, color-mix(in srgb, var(--robot-ember-soft) 26%, transparent), transparent 36rem),
+    radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--brand-grad-mid) 18%, transparent), transparent 27rem),
+    radial-gradient(circle at 18% 72%, color-mix(in srgb, var(--brand-grad-start) 12%, transparent), transparent 32rem),
+    radial-gradient(circle at 82% 32%, color-mix(in srgb, var(--brand-grad-end) 12%, transparent), transparent 34rem),
     radial-gradient(circle at var(--cursor-x) var(--cursor-y), color-mix(in srgb, var(--accent) 10%, transparent), transparent 22rem),
-    linear-gradient(180deg, color-mix(in srgb, var(--robot-void) 92%, var(--command-base)), var(--robot-void) 58%, var(--command-sunken));
-}
-
-.cyber-watermark {
-  font-size: clamp(4.5rem, 18vw, 18rem);
-  color: transparent;
-  background: radial-gradient(circle, color-mix(in srgb, var(--brand-grad-start) 0%, transparent), color-mix(in srgb, var(--ink-strong) 16%, transparent) 72%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  opacity: 0.58;
+    linear-gradient(180deg, var(--command-base), var(--command-sunken));
 }
 
 .service-atlas-card {
@@ -277,8 +268,8 @@
   border: 1px solid color-mix(in srgb, var(--surface-line) 72%, transparent);
   background:
     radial-gradient(circle at var(--card-x) var(--card-y), color-mix(in srgb, var(--accent) var(--card-accent-amount), transparent), transparent 42%),
-    radial-gradient(circle at 72% 0%, color-mix(in srgb, var(--robot-ember) var(--card-ember-amount), transparent), transparent 58%),
-    linear-gradient(145deg, color-mix(in srgb, var(--surface-raised) 58%, transparent), color-mix(in srgb, var(--robot-void) 44%, transparent));
+    radial-gradient(circle at 72% 0%, color-mix(in srgb, var(--brand-grad-mid) var(--card-ember-amount), transparent), transparent 58%),
+    linear-gradient(145deg, color-mix(in srgb, var(--surface-raised) 58%, transparent), color-mix(in srgb, var(--command-base) 44%, transparent));
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, var(--ink-strong) 7%, transparent),
     inset 0 -1px 0 color-mix(in srgb, var(--surface-base) 72%, transparent),
@@ -299,7 +290,7 @@
   pointer-events: none;
   background:
     radial-gradient(circle at var(--card-x) var(--card-y), color-mix(in srgb, var(--accent) 30%, transparent), transparent 7.5rem),
-    radial-gradient(circle at var(--card-x) var(--card-y), color-mix(in srgb, var(--robot-ember) 18%, transparent), transparent 10rem);
+    radial-gradient(circle at var(--card-x) var(--card-y), color-mix(in srgb, var(--brand-grad-start) 18%, transparent), transparent 10rem);
   opacity: var(--card-proximity);
   transition: opacity var(--dur-slow) var(--ease-standard);
   z-index: 1;
@@ -367,26 +358,6 @@
   pointer-events: none;
   border-radius: calc(var(--radius-2xl) - 1px);
   border: 1px solid color-mix(in srgb, var(--ink-strong) 7%, transparent);
-}
-
-.robot-3d-core {
-  opacity: 1;
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-}
-
-.robot-3d-core canvas {
-  display: block;
-  height: 100%;
-  width: 100%;
-}
-
-.robot-video-aura {
-  filter: blur(120px);
-  opacity: 0.08;
-  transform: scale(0.82);
 }
 
 @media (prefers-reduced-motion: reduce) {
