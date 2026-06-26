@@ -12,7 +12,7 @@ type RobotCoreProps = {
 type Cursor = { x: number; y: number };
 type RobotAssetMode = "layered" | "angles" | "glb";
 
-const ROBOT_ASSET_MODE: RobotAssetMode = "angles";
+const ROBOT_ASSET_MODE: RobotAssetMode = "glb";
 const BODY_TEXTURE = "/images/robot_body.png";
 const HEAD_TEXTURE = "/images/robot_head.png";
 const GLB_HEAD_MODEL = "/models/robot-head.glb";
