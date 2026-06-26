@@ -326,30 +326,57 @@ function MobileServiceSelector({ active, setActive }: { active: number; setActiv
 
 function CyberCore({ active }: { active: number }) {
   const service = services[active];
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = true;
+    video.pause();
+
+    function scrub(clientX: number) {
+      if (!video || !Number.isFinite(video.duration) || video.duration <= 0) return;
+      const progress = 1 - Math.min(Math.max(clientX / window.innerWidth, 0), 1);
+      video.currentTime = progress * video.duration;
+    }
+
+    function onPointerMove(event: PointerEvent) {
+      if (event.pointerType === "touch") return;
+      scrub(event.clientX);
+    }
+
+    function onLoadedMetadata() {
+      scrub(window.innerWidth);
+    }
+
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    video.addEventListener("loadedmetadata", onLoadedMetadata);
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      video.removeEventListener("loadedmetadata", onLoadedMetadata);
+    };
+  }, []);
+
   return (
     <div
       className="pointer-events-none relative z-50 mx-auto grid aspect-square w-[min(78vw,34rem)] place-items-center md:w-[min(44vw,40rem)]"
       style={{ ["--accent" as string]: service.themeColor } as CSSProperties}
       aria-hidden="true"
     >
-      <div className="robot-video-aura absolute inset-[18%] rounded-pill bg-[color:var(--accent)]" />
-      <div className="absolute inset-[5%] rotate-45 border border-surface-line opacity-25" />
-      <div className="absolute inset-[13%] -rotate-6 rounded-2xl border border-[color:var(--accent)] bg-surface-raised/10 opacity-45 shadow-3" />
-      <div className="robot-video-core relative aspect-[4/5] w-[58%] overflow-hidden rounded-[36%_36%_30%_30%] border border-surface-line bg-surface-sunken shadow-3 md:w-[48%]">
+      <div className="robot-video-aura absolute inset-[18%] z-0 rounded-pill bg-[color:var(--accent)]" />
+      <div className="absolute inset-[5%] z-0 rotate-45 border border-surface-line opacity-25" />
+      <div className="absolute inset-[13%] z-0 -rotate-6 rounded-2xl border border-[color:var(--accent)] bg-surface-raised/10 opacity-35 shadow-3" />
+      <div className="robot-video-core relative z-10 aspect-[4/5] w-[58%] overflow-hidden rounded-[36%_36%_30%_30%] border border-surface-line bg-surface-sunken shadow-3 md:w-[48%]">
         <video
-          className="h-full w-full object-cover"
+          ref={videoRef}
+          className="h-full w-full object-cover opacity-100"
           src="/images/robot_video.mp4"
-          autoPlay
           muted
-          loop
           playsInline
-          preload="metadata"
+          preload="auto"
         />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--surface-base)_10%,transparent),color-mix(in_srgb,var(--surface-base)_62%,transparent))]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,transparent_0%,transparent_44%,color-mix(in_srgb,var(--surface-base)_72%,transparent)_100%)]" />
-        <div className="absolute inset-x-[18%] bottom-[16%] h-px bg-[color:var(--accent)] opacity-70" />
       </div>
-      <div className="absolute inset-[22%] rounded-pill bg-[color:var(--accent)] opacity-18 blur-2xl" />
     </div>
   );
 }

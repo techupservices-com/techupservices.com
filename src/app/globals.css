@@ -391,17 +391,17 @@
 }
 
 .robot-video-core {
+  opacity: 1;
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, var(--ink-strong) 10%, transparent),
     inset 0 -1px 0 color-mix(in srgb, var(--accent) 18%, transparent),
-    0 24px 80px rgba(0, 0, 0, 0.36),
-    0 0 34px color-mix(in srgb, var(--accent) 9%, transparent);
+    0 24px 80px rgba(0, 0, 0, 0.36);
 }
 
 .robot-video-aura {
-  filter: blur(44px);
-  opacity: 0.18;
-  transform: scale(1.08);
+  filter: blur(52px);
+  opacity: 0.14;
+  transform: scale(1.12);
 }
 
 @media (max-width: 767px) {
