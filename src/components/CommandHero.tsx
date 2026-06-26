@@ -9,6 +9,7 @@ import TiltCard from "@/components/TiltCard";
 import TextReveal from "@/components/TextReveal";
 
 const SPOTLIGHT_R = 260;
+const VIDEO_SCRUB_SENSITIVITY = 0.8;
 
 const SERVICE_COPY: Record<string, string> = {
   "ai-automation": "Reclaim operational hours with workflows that keep moving after your team logs off.",
@@ -327,34 +328,71 @@ function MobileServiceSelector({ active, setActive }: { active: number; setActiv
 function CyberCore({ active }: { active: number }) {
   const service = services[active];
   const videoRef = useRef<HTMLVideoElement>(null);
+  const scrubRef = useRef({ targetTime: 0, isSeeking: false, prevX: null as number | null });
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+    const state = scrubRef.current;
 
     video.muted = true;
     video.pause();
 
-    function scrub(clientX: number) {
-      if (!video || !Number.isFinite(video.duration) || video.duration <= 0) return;
-      const progress = 1 - Math.min(Math.max(clientX / window.innerWidth, 0), 1);
-      video.currentTime = progress * video.duration;
+    function seekToTarget() {
+      const player = videoRef.current;
+      if (!player || !Number.isFinite(player.duration) || player.duration <= 0) return;
+      if (Math.abs(state.targetTime - player.currentTime) <= 0.01) return;
+      state.isSeeking = true;
+      player.currentTime = state.targetTime;
     }
 
-    function onPointerMove(event: PointerEvent) {
-      if (event.pointerType === "touch") return;
-      scrub(event.clientX);
+    function onMouseMove(event: MouseEvent) {
+      const player = videoRef.current;
+      if (!player) return;
+      const x = Math.min(Math.max(event.clientX / window.innerWidth, 0), 1);
+
+      if (state.prevX === null) {
+        state.prevX = x;
+        return;
+      }
+
+      if (!Number.isFinite(player.duration) || player.duration <= 0) {
+        state.prevX = x;
+        return;
+      }
+
+      const delta = x - state.prevX;
+      state.prevX = x;
+      state.targetTime = Math.min(
+        Math.max(state.targetTime + delta * VIDEO_SCRUB_SENSITIVITY * player.duration, 0),
+        player.duration,
+      );
+
+      if (!state.isSeeking) seekToTarget();
     }
 
     function onLoadedMetadata() {
-      scrub(window.innerWidth);
+      const player = videoRef.current;
+      if (!player) return;
+      state.targetTime = 0;
+      state.isSeeking = false;
+      state.prevX = null;
+      player.pause();
+      player.currentTime = 0;
     }
 
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    function onSeeked() {
+      state.isSeeking = false;
+      seekToTarget();
+    }
+
+    window.addEventListener("mousemove", onMouseMove, { passive: true });
     video.addEventListener("loadedmetadata", onLoadedMetadata);
+    video.addEventListener("seeked", onSeeked);
     return () => {
-      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("mousemove", onMouseMove);
       video.removeEventListener("loadedmetadata", onLoadedMetadata);
+      video.removeEventListener("seeked", onSeeked);
     };
   }, []);
 
@@ -370,7 +408,7 @@ function CyberCore({ active }: { active: number }) {
       <div className="robot-video-core relative z-10 aspect-[4/5] w-[58%] overflow-hidden rounded-[36%_36%_30%_30%] border border-surface-line bg-surface-sunken shadow-3 md:w-[48%]">
         <video
           ref={videoRef}
-          className="h-full w-full object-cover opacity-100"
+          className="absolute inset-0 h-full w-full object-cover opacity-100"
           src="/images/robot_video.mp4"
           muted
           playsInline
