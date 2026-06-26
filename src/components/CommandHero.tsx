@@ -328,20 +328,27 @@ function CyberCore({ active }: { active: number }) {
   const service = services[active];
   return (
     <div
-      className="relative z-30 mx-auto grid aspect-square w-[min(72vw,32rem)] place-items-center md:w-[min(42vw,38rem)]"
+      className="relative z-30 mx-auto grid aspect-square w-[min(78vw,34rem)] place-items-center md:w-[min(44vw,40rem)]"
       style={{ ["--accent" as string]: service.themeColor } as CSSProperties}
       aria-hidden="true"
     >
-      <div className="absolute inset-[10%] rotate-45 border border-surface-line opacity-35" />
-      <div className="absolute inset-[24%] -rotate-12 rounded-xl border border-[color:var(--accent)] bg-surface-raised/20 opacity-55 shadow-3" />
-      <div className="absolute inset-[34%] rounded-[42%_58%_46%_54%] border border-surface-line bg-surface-raised/35 shadow-3" />
-      <div className="relative h-[42%] w-[38%] rounded-[45%_45%_38%_38%] border border-[color:var(--accent)] bg-surface-sunken shadow-3">
-        <div className="absolute left-[24%] top-[32%] h-s3 w-s3 rounded-pill bg-brand-start shadow-2" />
-        <div className="absolute right-[24%] top-[32%] h-s3 w-s3 rounded-pill bg-brand-mid shadow-2" />
-        <div className="absolute bottom-[27%] left-[28%] h-px w-[44%] bg-surface-line" />
-        <div className="absolute -bottom-[22%] left-1/2 h-[24%] w-[48%] -translate-x-1/2 rounded-b-xl border-x border-b border-surface-line bg-surface-raised/30" />
+      <div className="absolute inset-[5%] rotate-45 border border-surface-line opacity-25" />
+      <div className="absolute inset-[13%] -rotate-6 rounded-2xl border border-[color:var(--accent)] bg-surface-raised/10 opacity-45 shadow-3" />
+      <div className="robot-video-core relative aspect-[4/5] w-[58%] overflow-hidden rounded-[36%_36%_30%_30%] border border-surface-line bg-surface-sunken shadow-3 md:w-[48%]">
+        <video
+          className="h-full w-full object-cover"
+          src="/images/robot_video.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--surface-base)_10%,transparent),color-mix(in_srgb,var(--surface-base)_62%,transparent))]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,transparent_0%,transparent_44%,color-mix(in_srgb,var(--surface-base)_72%,transparent)_100%)]" />
+        <div className="absolute inset-x-[18%] bottom-[16%] h-px bg-[color:var(--accent)] opacity-70" />
       </div>
-      <div className="absolute inset-[36%] rounded-pill bg-[color:var(--accent)] opacity-20 blur-2xl" />
+      <div className="absolute inset-[22%] rounded-pill bg-[color:var(--accent)] opacity-18 blur-2xl" />
     </div>
   );
 }
