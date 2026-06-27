@@ -12,19 +12,29 @@ const RobotCore = dynamic(() => import("@/components/RobotCore"), {
 });
 
 const POSITIONS = [
-  { desktopLeft: "20%", desktopTop: "26%", mobileLeft: "26%", mobileTop: "15%" },
-  { desktopLeft: "50%", desktopTop: "22%", mobileLeft: "74%", mobileTop: "15%" },
-  { desktopLeft: "80%", desktopTop: "26%", mobileLeft: "26%", mobileTop: "33%" },
-  { desktopLeft: "20%", desktopTop: "48%", mobileLeft: "74%", mobileTop: "33%" },
-  { desktopLeft: "80%", desktopTop: "48%", mobileLeft: "25%", mobileTop: "70%" },
-  { desktopLeft: "20%", desktopTop: "70%", mobileLeft: "75%", mobileTop: "70%" },
-  { desktopLeft: "80%", desktopTop: "70%", mobileLeft: "50%", mobileTop: "84%" },
+  { desktopLeft: "20%", desktopTop: "26%" },
+  { desktopLeft: "50%", desktopTop: "22%" },
+  { desktopLeft: "80%", desktopTop: "26%" },
+  { desktopLeft: "20%", desktopTop: "48%" },
+  { desktopLeft: "80%", desktopTop: "48%" },
+  { desktopLeft: "20%", desktopTop: "70%" },
+  { desktopLeft: "80%", desktopTop: "70%" },
+] as const;
+
+const MOBILE_ORBIT_POSITIONS = [
+  { left: "18%", top: "34%" },
+  { left: "50%", top: "18%" },
+  { left: "82%", top: "34%" },
 ] as const;
 
 type Point = { x: number; y: number };
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
+}
+
+function wrapIndex(index: number) {
+  return (index + services.length) % services.length;
 }
 
 export default function CommandHero() {
@@ -98,14 +108,15 @@ export default function CommandHero() {
 
       <div className="relative z-30 flex h-full items-center md:px-gutter md:pb-s7 md:pt-s10">
         <div className="flex flex-1 items-center justify-center">
-          <ServiceConstellation active={active} cursor={cursorNorm} entered={entered && !reduceMotion} setActive={setActive} />
+          <DesktopServiceConstellation active={active} cursor={cursorNorm} entered={entered && !reduceMotion} setActive={setActive} />
+          <MobileServiceAtlas active={active} setActive={setActive} />
         </div>
       </div>
     </section>
   );
 }
 
-function ServiceConstellation({
+function DesktopServiceConstellation({
   active,
   cursor,
   entered,
@@ -117,7 +128,7 @@ function ServiceConstellation({
   setActive: (index: number) => void;
 }) {
   return (
-    <ol className="absolute inset-0 z-40 block" aria-label="Service discovery atlas">
+    <ol className="absolute inset-0 z-40 hidden md:block" aria-label="Service discovery atlas">
       {services.map((service, index) => {
         const selected = index === active;
         const position = POSITIONS[index];
@@ -127,12 +138,10 @@ function ServiceConstellation({
         return (
           <li
             key={service.id}
-            className="absolute -translate-x-1/2 -translate-y-1/2 md:left-[var(--desktop-left)] md:top-[var(--desktop-top)] left-[var(--mobile-left)] top-[var(--mobile-top)]"
+            className="absolute -translate-x-1/2 -translate-y-1/2 left-[var(--desktop-left)] top-[var(--desktop-top)]"
             style={{
               ["--desktop-left" as string]: position.desktopLeft,
               ["--desktop-top" as string]: position.desktopTop,
-              ["--mobile-left" as string]: position.mobileLeft,
-              ["--mobile-top" as string]: position.mobileTop,
             } as CSSProperties}
           >
             <ServiceAtlasCard
@@ -145,6 +154,87 @@ function ServiceConstellation({
         );
       })}
     </ol>
+  );
+}
+
+function MobileServiceAtlas({ active, setActive }: { active: number; setActive: (index: number) => void }) {
+  const orbitIndexes = [wrapIndex(active - 1), active, wrapIndex(active + 1)];
+
+  return (
+    <div className="absolute inset-0 z-40 block md:hidden" aria-label="Mobile service discovery atlas">
+      <ol className="absolute inset-x-0 top-0 h-[58dvh]" aria-label="Featured services">
+        {orbitIndexes.map((serviceIndex, orbitIndex) => {
+          const service = services[serviceIndex];
+          const selected = serviceIndex === active;
+          const position = MOBILE_ORBIT_POSITIONS[orbitIndex];
+
+          return (
+            <li
+              key={`${service.id}-${orbitIndex}`}
+              className="absolute -translate-x-1/2 -translate-y-1/2 left-[var(--mobile-left)] top-[var(--mobile-top)]"
+              style={{
+                ["--mobile-left" as string]: position.left,
+                ["--mobile-top" as string]: position.top,
+              } as CSSProperties}
+            >
+              <MobileOrbitCard service={service} selected={selected} onActivate={() => setActive(serviceIndex)} />
+            </li>
+          );
+        })}
+      </ol>
+
+      <ol className="absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+var(--space-4))] flex gap-s2 overflow-x-auto px-gutter pb-s1 pt-s2" aria-label="Choose a service">
+        {services.map((service, index) => {
+          const selected = index === active;
+          return (
+            <li key={service.id} className="shrink-0">
+              <button
+                type="button"
+                onFocus={() => setActive(index)}
+                onClick={() => setActive(index)}
+                className={`mobile-service-rail min-h-11 w-[clamp(5.75rem,26vw,7rem)] rounded-md px-s3 py-s2 text-left font-display text-[0.72rem] font-bold leading-tight tracking-[var(--tracking-tight)] transition-all duration-base ease-emphasized focus-visible:border-[color:var(--accent)] ${
+                  selected ? "is-active text-ink-strong" : "text-ink-body opacity-70"
+                }`}
+                style={{ ["--accent" as string]: service.themeColor } as CSSProperties}
+                aria-pressed={selected}
+              >
+                {service.name}
+              </button>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+}
+
+function MobileOrbitCard({
+  service,
+  selected,
+  onActivate,
+}: {
+  service: (typeof services)[number];
+  selected: boolean;
+  onActivate: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onFocus={onActivate}
+      onClick={onActivate}
+      className={`mobile-service-orbit w-[clamp(6.35rem,30vw,7.8rem)] rounded-md px-s3 py-s2 text-left transition-all duration-base ease-emphasized focus-visible:border-[color:var(--accent)] ${
+        selected ? "is-active scale-[1.04]" : "opacity-68"
+      }`}
+      style={{ ["--accent" as string]: service.themeColor } as CSSProperties}
+      aria-pressed={selected}
+    >
+      <span className="block font-display text-[clamp(0.76rem,3vw,0.92rem)] font-bold leading-[1.02] tracking-[var(--tracking-tight)] text-ink-strong">
+        {service.name}
+      </span>
+      <span className="mt-s1 block text-[clamp(0.64rem,2.45vw,0.74rem)] leading-snug text-ink-body">
+        {service.tagline}
+      </span>
+    </button>
   );
 }
 
