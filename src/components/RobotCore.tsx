@@ -7,13 +7,13 @@ type RobotCoreProps = {
   mobileDirection?: Direction;
 };
 
-type Direction = "center" | "lower-left" | "left" | "upper-left" | "up" | "upper-right" | "right" | "lower-right";
+type Direction = "center" | "lower-left" | "left" | "upper-left" | "up" | "upper-right" | "right" | "lower-right" | "down";
 
 const DIRECTION_PATH = "/images/robot-directions/";
 const POINTER_SMOOTHING = 0.42;
 const CENTER_DEAD_ZONE = 0.16;
 const TRANSITION_MS = 180;
-const DIRECTIONS: Direction[] = ["center", "lower-left", "left", "upper-left", "up", "upper-right", "right", "lower-right"];
+const DIRECTIONS: Direction[] = ["center", "lower-left", "left", "upper-left", "up", "upper-right", "right", "lower-right", "down"];
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -36,6 +36,7 @@ function getNearestDirection(x: number, y: number): Direction {
   if (y > 0.42) {
     if (x < -0.24) return "lower-left";
     if (x > 0.24) return "lower-right";
+    return "down";
   }
 
   if (x < -0.2) return "left";
@@ -76,6 +77,7 @@ export default function RobotCore({ accent, mobileDirection }: RobotCoreProps) {
     "upper-right": undefined,
     right: undefined,
     "lower-right": undefined,
+    down: undefined,
   });
   const stateRef = useRef({
     targetX: 0,

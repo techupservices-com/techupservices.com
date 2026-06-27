@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { services } from "@/data/services";
 import { useMotionSafe } from "@/lib/motion";
 import TiltCard from "@/components/TiltCard";
@@ -28,7 +28,7 @@ const MOBILE_ORBIT_POSITIONS = [
 ] as const;
 
 type Point = { x: number; y: number };
-type RobotDirection = "center" | "lower-left" | "left" | "upper-left" | "up" | "upper-right" | "right" | "lower-right";
+type RobotDirection = "center" | "lower-left" | "left" | "upper-left" | "up" | "upper-right" | "right" | "lower-right" | "down";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -55,6 +55,12 @@ export default function CommandHero() {
     smooth.current = { x: event.clientX, y: event.clientY };
     setCursor({ x: event.clientX, y: event.clientY });
     setEntered(true);
+  }
+
+  function resetMobileRobotDirection(event: ReactMouseEvent<HTMLElement>) {
+    if (window.innerWidth >= 768) return;
+    if (event.target instanceof Element && event.target.closest("button")) return;
+    setMobileDirection("center");
   }
 
   useEffect(() => {
@@ -102,6 +108,7 @@ export default function CommandHero() {
     <section
       onPointerDown={updateTouchCursor}
       onPointerMove={updateTouchCursor}
+      onClickCapture={resetMobileRobotDirection}
       className="cyber-hero relative h-dvh min-h-[680px] overflow-hidden bg-surface-base px-gutter py-s8 text-ink-strong md:min-h-[720px] md:p-0"
       style={style}
       aria-label="TechUpServices service atlas"
@@ -175,7 +182,7 @@ function MobileServiceAtlas({
     return {
       service: services[index],
       index,
-      direction: (offset < 0 ? "lower-left" : "lower-right") as RobotDirection,
+      direction: "down" as RobotDirection,
     };
   });
 
