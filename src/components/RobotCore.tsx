@@ -48,8 +48,12 @@ function easeOutCubic(value: number) {
 }
 
 function drawContain(ctx: CanvasRenderingContext2D, image: HTMLImageElement, width: number, height: number) {
-  const imageRatio = image.naturalWidth / image.naturalHeight;
   const isNarrow = width < 768;
+  const sourceX = isNarrow ? image.naturalWidth * 0.18 : 0;
+  const sourceY = isNarrow ? image.naturalHeight * 0.02 : 0;
+  const sourceWidth = isNarrow ? image.naturalWidth * 0.64 : image.naturalWidth;
+  const sourceHeight = isNarrow ? image.naturalHeight * 0.86 : image.naturalHeight;
+  const imageRatio = sourceWidth / sourceHeight;
   const maxHeight = height * (isNarrow ? 1.04 : 0.7);
   const maxWidth = width * (isNarrow ? 1.9 : 0.42);
   const drawHeight = Math.min(maxHeight, maxWidth / imageRatio);
@@ -57,7 +61,7 @@ function drawContain(ctx: CanvasRenderingContext2D, image: HTMLImageElement, wid
   const drawX = (width - drawWidth) / 2;
   const drawY = isNarrow ? height - drawHeight : height - drawHeight * 0.92;
 
-  ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+  ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, drawX, drawY, drawWidth, drawHeight);
 }
 
 export default function RobotCore({ accent }: RobotCoreProps) {
