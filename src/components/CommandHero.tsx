@@ -159,6 +159,10 @@ function DesktopServiceConstellation({
 
 function MobileServiceAtlas({ active, setActive }: { active: number; setActive: (index: number) => void }) {
   const orbitIndexes = [wrapIndex(active - 1), active, wrapIndex(active + 1)];
+  const orbitIndexSet = new Set(orbitIndexes);
+  const railServices = services
+    .map((service, index) => ({ service, index }))
+    .filter(({ index }) => !orbitIndexSet.has(index));
 
   return (
     <div className="absolute inset-0 z-40 block md:hidden" aria-label="Mobile service discovery atlas">
@@ -184,7 +188,7 @@ function MobileServiceAtlas({ active, setActive }: { active: number; setActive: 
       </ol>
 
       <ol className="absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+var(--space-4))] flex gap-s2 overflow-x-auto px-gutter pb-s1 pt-s2" aria-label="Choose a service">
-        {services.map((service, index) => {
+        {railServices.map(({ service, index }) => {
           const selected = index === active;
           return (
             <li key={service.id} className="shrink-0">
