@@ -12,13 +12,13 @@ const RobotCore = dynamic(() => import("@/components/RobotCore"), {
 });
 
 const POSITIONS = [
-  { left: "20%", top: "26%" },
-  { left: "50%", top: "22%" },
-  { left: "80%", top: "26%" },
-  { left: "20%", top: "48%" },
-  { left: "80%", top: "48%" },
-  { left: "20%", top: "70%" },
-  { left: "80%", top: "70%" },
+  { desktopLeft: "20%", desktopTop: "26%", mobileLeft: "26%", mobileTop: "15%" },
+  { desktopLeft: "50%", desktopTop: "22%", mobileLeft: "74%", mobileTop: "15%" },
+  { desktopLeft: "80%", desktopTop: "26%", mobileLeft: "26%", mobileTop: "33%" },
+  { desktopLeft: "20%", desktopTop: "48%", mobileLeft: "74%", mobileTop: "33%" },
+  { desktopLeft: "80%", desktopTop: "48%", mobileLeft: "25%", mobileTop: "70%" },
+  { desktopLeft: "20%", desktopTop: "70%", mobileLeft: "75%", mobileTop: "70%" },
+  { desktopLeft: "80%", desktopTop: "70%", mobileLeft: "50%", mobileTop: "84%" },
 ] as const;
 
 type Point = { x: number; y: number };
@@ -90,13 +90,13 @@ export default function CommandHero() {
     <section
       onPointerDown={updateTouchCursor}
       onPointerMove={updateTouchCursor}
-      className="cyber-hero relative min-h-dvh overflow-hidden bg-surface-base px-gutter py-s10 text-ink-strong md:h-dvh md:min-h-[720px] md:p-0"
+      className="cyber-hero relative h-dvh min-h-[680px] overflow-hidden bg-surface-base px-gutter py-s8 text-ink-strong md:min-h-[720px] md:p-0"
       style={style}
       aria-label="TechUpServices service atlas"
     >
       <CyberCore active={active} />
 
-      <div className="relative z-30 flex min-h-[calc(100dvh-var(--space-10))] items-center md:h-full md:min-h-0 md:px-gutter md:pb-s7 md:pt-s10">
+      <div className="relative z-30 flex h-full items-center md:px-gutter md:pb-s7 md:pt-s10">
         <div className="flex flex-1 items-center justify-center">
           <ServiceConstellation active={active} cursor={cursorNorm} entered={entered && !reduceMotion} setActive={setActive} />
         </div>
@@ -117,15 +117,24 @@ function ServiceConstellation({
   setActive: (index: number) => void;
 }) {
   return (
-    <ol className="relative z-40 grid w-full max-w-[42rem] grid-cols-1 gap-s3 sm:grid-cols-2 md:absolute md:inset-0 md:block md:max-w-none" aria-label="Service discovery atlas">
+    <ol className="absolute inset-0 z-40 block" aria-label="Service discovery atlas">
       {services.map((service, index) => {
         const selected = index === active;
         const position = POSITIONS[index];
-        const cardX = Number.parseFloat(position.left) / 100;
-        const cardY = Number.parseFloat(position.top) / 100;
+        const cardX = Number.parseFloat(position.desktopLeft) / 100;
+        const cardY = Number.parseFloat(position.desktopTop) / 100;
         const proximity = entered ? clamp(1 - Math.hypot(cursor.x - cardX, cursor.y - cardY) * 2.25, 0, 1) : 0;
         return (
-          <li key={service.id} className="md:absolute md:-translate-x-1/2 md:-translate-y-1/2" style={position}>
+          <li
+            key={service.id}
+            className="absolute -translate-x-1/2 -translate-y-1/2 md:left-[var(--desktop-left)] md:top-[var(--desktop-top)] left-[var(--mobile-left)] top-[var(--mobile-top)]"
+            style={{
+              ["--desktop-left" as string]: position.desktopLeft,
+              ["--desktop-top" as string]: position.desktopTop,
+              ["--mobile-left" as string]: position.mobileLeft,
+              ["--mobile-top" as string]: position.mobileTop,
+            } as CSSProperties}
+          >
             <ServiceAtlasCard
               service={service}
               selected={selected}
@@ -157,14 +166,14 @@ function ServiceAtlasCard({
   }
 
   return (
-    <TiltCard className="w-full md:w-[clamp(14rem,19vw,18.75rem)]">
+    <TiltCard className="w-[clamp(8.75rem,38vw,11rem)] sm:w-[clamp(10rem,32vw,13rem)] md:w-[clamp(14rem,19vw,18.75rem)]">
       <button
         type="button"
         onPointerEnter={onActivate}
         onPointerMove={onPointerMove}
         onFocus={onActivate}
         onClick={onActivate}
-        className={`service-atlas-card group min-h-[6.75rem] w-full rounded-xl p-s4 text-left transition-all duration-slow ease-emphasized focus-visible:border-[color:var(--accent)] md:min-h-[7.5rem] md:p-s5 ${
+        className={`service-atlas-card group min-h-[5.75rem] w-full rounded-lg p-s3 text-left transition-all duration-slow ease-emphasized focus-visible:border-[color:var(--accent)] sm:min-h-[6.25rem] md:min-h-[7.5rem] md:rounded-xl md:p-s5 ${
           selected ? "is-active scale-[1.04]" : "opacity-55 hover:opacity-100"
         }`}
         style={{
@@ -176,10 +185,10 @@ function ServiceAtlasCard({
         } as CSSProperties}
         aria-pressed={selected}
       >
-        <span className="block max-w-[15rem] font-display text-fs-h4 font-bold leading-[1.02] tracking-[var(--tracking-tight)] text-ink-strong">
+        <span className="block max-w-[15rem] font-display text-[clamp(0.95rem,3.6vw,1.15rem)] font-bold leading-[1.02] tracking-[var(--tracking-tight)] text-ink-strong md:text-fs-h4">
           {service.name}
         </span>
-        <span className="mt-s3 block max-w-[14.5rem] text-fs-body font-normal leading-snug text-ink-body">
+        <span className="mt-s2 block max-w-[14.5rem] text-[clamp(0.72rem,2.8vw,0.9rem)] font-normal leading-snug text-ink-body md:mt-s3 md:text-fs-body">
           {service.tagline}
         </span>
       </button>
