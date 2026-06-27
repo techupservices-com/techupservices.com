@@ -239,10 +239,10 @@ function MobileServiceAtlas({
     };
   });
   const railServices = [
-    { offset: -3, direction: "lower-left" as RobotDirection },
-    { offset: -2, direction: "down" as RobotDirection },
-    { offset: 2, direction: "down" as RobotDirection },
-    { offset: 3, direction: "lower-right" as RobotDirection },
+    { offset: -2, direction: "lower-left" as RobotDirection },
+    { offset: -3, direction: "down" as RobotDirection },
+    { offset: 3, direction: "down" as RobotDirection },
+    { offset: 2, direction: "lower-right" as RobotDirection },
   ].map(({ offset, direction }) => {
     const index = wrapIndex(active + offset);
     return {
