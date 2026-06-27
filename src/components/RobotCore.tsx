@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 
 type RobotCoreProps = {
   accent: string;
+  mobileDirection?: Direction;
 };
 
 type Direction = "center" | "lower-left" | "left" | "upper-left" | "up" | "upper-right" | "right" | "lower-right";
@@ -62,9 +63,10 @@ function drawContain(ctx: CanvasRenderingContext2D, image: HTMLImageElement, wid
   ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, drawX, drawY, drawWidth, drawHeight);
 }
 
-export default function RobotCore({ accent }: RobotCoreProps) {
+export default function RobotCore({ accent, mobileDirection }: RobotCoreProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const mobileDirectionRef = useRef<Direction | undefined>(mobileDirection);
   const directionImagesRef = useRef<Record<Direction, HTMLImageElement | undefined>>({
     center: undefined,
     "lower-left": undefined,
@@ -88,6 +90,10 @@ export default function RobotCore({ accent }: RobotCoreProps) {
     canvasHeight: 0,
     reducedMotion: false,
   });
+
+  useEffect(() => {
+    mobileDirectionRef.current = mobileDirection;
+  }, [mobileDirection]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -179,6 +185,13 @@ export default function RobotCore({ accent }: RobotCoreProps) {
 
       if (state.reducedMotion) {
         if (state.renderedDirection !== "center") drawStaticDirection("center");
+        return;
+      }
+
+      const mobileDirectionTarget = mobileDirectionRef.current;
+      if (window.innerWidth < 768 && mobileDirectionTarget) {
+        startTransition(mobileDirectionTarget);
+        drawTransition(now);
         return;
       }
 

@@ -28,6 +28,7 @@ const MOBILE_ORBIT_POSITIONS = [
 ] as const;
 
 type Point = { x: number; y: number };
+type RobotDirection = "center" | "lower-left" | "left" | "upper-left" | "up" | "upper-right" | "right" | "lower-right";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -44,6 +45,7 @@ export default function CommandHero() {
   const [cursor, setCursor] = useState<Point>({ x: -999, y: -999 });
   const [active, setActive] = useState(0);
   const [entered, setEntered] = useState(false);
+  const [mobileDirection, setMobileDirection] = useState<RobotDirection>("up");
   const { shouldReduce } = useMotionSafe();
   const reduceMotion = Boolean(shouldReduce);
 
@@ -104,12 +106,12 @@ export default function CommandHero() {
       style={style}
       aria-label="TechUpServices service atlas"
     >
-      <CyberCore active={active} />
+      <CyberCore active={active} mobileDirection={mobileDirection} />
 
       <div className="relative z-30 flex h-full items-center md:px-gutter md:pb-s7 md:pt-s10">
         <div className="flex flex-1 items-center justify-center">
           <DesktopServiceConstellation active={active} cursor={cursorNorm} entered={entered && !reduceMotion} setActive={setActive} />
-          <MobileServiceAtlas active={active} setActive={setActive} />
+          <MobileServiceAtlas active={active} setActive={setActive} setMobileDirection={setMobileDirection} />
         </div>
       </div>
     </section>
@@ -157,8 +159,17 @@ function DesktopServiceConstellation({
   );
 }
 
-function MobileServiceAtlas({ active, setActive }: { active: number; setActive: (index: number) => void }) {
+function MobileServiceAtlas({
+  active,
+  setActive,
+  setMobileDirection,
+}: {
+  active: number;
+  setActive: (index: number) => void;
+  setMobileDirection: (direction: RobotDirection) => void;
+}) {
   const orbitIndexes = [wrapIndex(active - 1), active, wrapIndex(active + 1)];
+  const orbitDirections: RobotDirection[] = ["upper-left", "up", "upper-right"];
   const orbitIndexSet = new Set(orbitIndexes);
   const railServices = services
     .map((service, index) => ({ service, index }))
@@ -171,6 +182,7 @@ function MobileServiceAtlas({ active, setActive }: { active: number; setActive: 
           const service = services[serviceIndex];
           const selected = serviceIndex === active;
           const position = MOBILE_ORBIT_POSITIONS[orbitIndex];
+          const direction = orbitDirections[orbitIndex];
 
           return (
             <li
@@ -181,21 +193,35 @@ function MobileServiceAtlas({ active, setActive }: { active: number; setActive: 
                 ["--mobile-top" as string]: position.top,
               } as CSSProperties}
             >
-              <MobileOrbitCard service={service} selected={selected} onActivate={() => setActive(serviceIndex)} />
+              <MobileOrbitCard
+                service={service}
+                selected={selected}
+                onActivate={() => {
+                  setMobileDirection(direction);
+                  setActive(serviceIndex);
+                }}
+              />
             </li>
           );
         })}
       </ol>
 
       <ol className="absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+var(--space-4))] flex gap-s2 overflow-x-auto px-gutter pb-s1 pt-s2" aria-label="Choose a service">
-        {railServices.map(({ service, index }) => {
+        {railServices.map(({ service, index }, railIndex) => {
           const selected = index === active;
+          const direction = railIndex < railServices.length / 2 ? "lower-left" : "lower-right";
           return (
             <li key={service.id} className="shrink-0">
               <button
                 type="button"
-                onFocus={() => setActive(index)}
-                onClick={() => setActive(index)}
+                onFocus={() => {
+                  setMobileDirection(direction);
+                  setActive(index);
+                }}
+                onClick={() => {
+                  setMobileDirection(direction);
+                  setActive(index);
+                }}
                 className={`mobile-service-rail min-h-11 w-[clamp(5.75rem,26vw,7rem)] rounded-md px-s3 py-s2 text-left font-display text-[0.72rem] font-bold leading-tight tracking-[var(--tracking-tight)] transition-all duration-base ease-emphasized focus-visible:border-[color:var(--accent)] ${
                   selected ? "is-active text-ink-strong" : "text-ink-body opacity-70"
                 }`}
@@ -290,7 +316,7 @@ function ServiceAtlasCard({
   );
 }
 
-function CyberCore({ active }: { active: number }) {
+function CyberCore({ active, mobileDirection }: { active: number; mobileDirection: RobotDirection }) {
   const service = services[active];
 
   return (
@@ -300,7 +326,7 @@ function CyberCore({ active }: { active: number }) {
       aria-hidden="true"
     >
       <div className="robot-3d-core absolute inset-0 z-10">
-        <RobotCore accent={service.themeColor} />
+        <RobotCore accent={service.themeColor} mobileDirection={mobileDirection} />
       </div>
     </div>
   );
