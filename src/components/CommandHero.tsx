@@ -100,7 +100,7 @@ export default function CommandHero() {
     <section
       onPointerDown={updateTouchCursor}
       onPointerMove={updateTouchCursor}
-      className="cyber-hero relative h-dvh min-h-[680px] overflow-hidden bg-surface-base px-gutter text-ink-strong md:min-h-[720px] md:p-0"
+      className="cyber-hero relative h-dvh min-h-[680px] overflow-hidden bg-surface-base px-gutter py-s8 text-ink-strong md:min-h-[720px] md:p-0"
       style={style}
       aria-label="TechUpServices service atlas"
     >

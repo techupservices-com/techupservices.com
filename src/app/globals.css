@@ -408,6 +408,13 @@
   width: 100%;
 }
 
+@media (max-width: 767px) {
+  .robot-3d-core {
+    transform: scale(2.25) translateY(4%);
+    transform-origin: center bottom;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .scanline::after { animation: none; opacity: 0; }
 }
