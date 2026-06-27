@@ -27,6 +27,8 @@ const MOBILE_ORBIT_POSITIONS = [
   { left: "82%", top: "34%" },
 ] as const;
 
+const MOBILE_ROTATION_STEP_MS = 190;
+
 type Point = { x: number; y: number };
 type RobotDirection = "center" | "lower-left" | "left" | "upper-left" | "up" | "upper-right" | "right" | "lower-right" | "down";
 
@@ -42,6 +44,9 @@ export default function CommandHero() {
   const mouse = useRef<Point>({ x: -999, y: -999 });
   const smooth = useRef<Point>({ x: -999, y: -999 });
   const rafRef = useRef<number | null>(null);
+  const activeRef = useRef(0);
+  const rotationTimeoutsRef = useRef<number[]>([]);
+  const rotationTokenRef = useRef(0);
   const [cursor, setCursor] = useState<Point>({ x: -999, y: -999 });
   const [active, setActive] = useState(0);
   const [entered, setEntered] = useState(false);
@@ -62,6 +67,53 @@ export default function CommandHero() {
     if (event.target instanceof Element && event.target.closest("button")) return;
     setMobileDirection("center");
   }
+
+  function clearMobileRotation() {
+    rotationTimeoutsRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId));
+    rotationTimeoutsRef.current = [];
+  }
+
+  function rotateMobileByOffset(offset: number, direction: RobotDirection) {
+    clearMobileRotation();
+    rotationTokenRef.current += 1;
+
+    if (offset === 0) {
+      setMobileDirection("up");
+      return;
+    }
+
+    setMobileDirection(direction);
+
+    if (reduceMotion) {
+      setActive(wrapIndex(activeRef.current + offset));
+      return;
+    }
+
+    const token = rotationTokenRef.current;
+    const step = offset > 0 ? 1 : -1;
+    const steps = Math.abs(offset);
+
+    for (let index = 1; index <= steps; index += 1) {
+      const timeoutId = window.setTimeout(() => {
+        if (rotationTokenRef.current !== token) return;
+        setActive((current) => wrapIndex(current + step));
+      }, MOBILE_ROTATION_STEP_MS * index);
+
+      rotationTimeoutsRef.current.push(timeoutId);
+    }
+  }
+
+  useEffect(() => {
+    activeRef.current = active;
+  }, [active]);
+
+  useEffect(
+    () => () => {
+      rotationTimeoutsRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId));
+      rotationTimeoutsRef.current = [];
+    },
+    [],
+  );
 
   useEffect(() => {
     if (reduceMotion) return;
@@ -118,7 +170,7 @@ export default function CommandHero() {
       <div className="relative z-30 flex h-full items-center md:px-gutter md:pb-s7 md:pt-s10">
         <div className="flex flex-1 items-center justify-center">
           <DesktopServiceConstellation active={active} cursor={cursorNorm} entered={entered && !reduceMotion} setActive={setActive} />
-          <MobileServiceAtlas active={active} setActive={setActive} setMobileDirection={setMobileDirection} />
+          <MobileServiceAtlas active={active} rotateMobileByOffset={rotateMobileByOffset} />
         </div>
       </div>
     </section>
@@ -168,32 +220,45 @@ function DesktopServiceConstellation({
 
 function MobileServiceAtlas({
   active,
-  setActive,
-  setMobileDirection,
+  rotateMobileByOffset,
 }: {
   active: number;
-  setActive: (index: number) => void;
-  setMobileDirection: (direction: RobotDirection) => void;
+  rotateMobileByOffset: (offset: number, direction: RobotDirection) => void;
 }) {
-  const orbitIndexes = [wrapIndex(active - 1), active, wrapIndex(active + 1)];
-  const orbitDirections: RobotDirection[] = ["upper-left", "up", "upper-right"];
-  const railServices = [-3, -2, 2, 3].map((offset) => {
+  const orbitServices = [
+    { offset: -1, direction: "upper-left" as RobotDirection },
+    { offset: 0, direction: "up" as RobotDirection },
+    { offset: 1, direction: "upper-right" as RobotDirection },
+  ].map(({ offset, direction }) => {
     const index = wrapIndex(active + offset);
     return {
       service: services[index],
       index,
-      direction: "down" as RobotDirection,
+      offset,
+      direction,
+    };
+  });
+  const railServices = [
+    { offset: -3, direction: "lower-left" as RobotDirection },
+    { offset: -2, direction: "down" as RobotDirection },
+    { offset: 2, direction: "down" as RobotDirection },
+    { offset: 3, direction: "lower-right" as RobotDirection },
+  ].map(({ offset, direction }) => {
+    const index = wrapIndex(active + offset);
+    return {
+      service: services[index],
+      index,
+      offset,
+      direction,
     };
   });
 
   return (
     <div className="absolute inset-0 z-40 block md:hidden" aria-label="Mobile service discovery atlas">
       <ol className="absolute inset-x-0 top-0 h-[58dvh]" aria-label="Featured services">
-        {orbitIndexes.map((serviceIndex, orbitIndex) => {
-          const service = services[serviceIndex];
-          const selected = serviceIndex === active;
+        {orbitServices.map(({ service, index, offset, direction }, orbitIndex) => {
+          const selected = index === active;
           const position = MOBILE_ORBIT_POSITIONS[orbitIndex];
-          const direction = orbitDirections[orbitIndex];
 
           return (
             <li
@@ -207,10 +272,7 @@ function MobileServiceAtlas({
               <MobileOrbitCard
                 service={service}
                 selected={selected}
-                onActivate={() => {
-                  setMobileDirection(direction);
-                  setActive(serviceIndex);
-                }}
+                onActivate={() => rotateMobileByOffset(offset, direction)}
               />
             </li>
           );
@@ -218,20 +280,13 @@ function MobileServiceAtlas({
       </ol>
 
       <ol className="absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+var(--space-4))] flex gap-s2 overflow-x-auto px-gutter pb-s1 pt-s2" aria-label="Choose a service">
-        {railServices.map(({ service, index, direction }) => {
+        {railServices.map(({ service, index, offset, direction }) => {
           const selected = index === active;
           return (
             <li key={service.id} className="shrink-0">
               <button
                 type="button"
-                onFocus={() => {
-                  setMobileDirection(direction);
-                  setActive(index);
-                }}
-                onClick={() => {
-                  setMobileDirection(direction);
-                  setActive(index);
-                }}
+                onClick={() => rotateMobileByOffset(offset, direction)}
                 className={`mobile-service-rail min-h-11 w-[clamp(5.75rem,26vw,7rem)] rounded-md px-s3 py-s2 text-left font-display text-[0.72rem] font-bold leading-tight tracking-[var(--tracking-tight)] transition-all duration-base ease-emphasized focus-visible:border-[color:var(--accent)] ${
                   selected ? "is-active text-ink-strong" : "text-ink-body opacity-70"
                 }`}
@@ -260,7 +315,6 @@ function MobileOrbitCard({
   return (
     <button
       type="button"
-      onFocus={onActivate}
       onClick={onActivate}
       className={`mobile-service-orbit w-[clamp(6.35rem,30vw,7.8rem)] rounded-md px-s3 py-s2 text-left transition-all duration-base ease-emphasized focus-visible:border-[color:var(--accent)] ${
         selected ? "is-active scale-[1.04]" : "opacity-68"
