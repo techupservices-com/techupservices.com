@@ -49,13 +49,13 @@ function easeOutCubic(value: number) {
 
 function drawContain(ctx: CanvasRenderingContext2D, image: HTMLImageElement, width: number, height: number) {
   const isNarrow = width < 768;
-  const sourceX = isNarrow ? image.naturalWidth * 0.18 : 0;
-  const sourceY = isNarrow ? image.naturalHeight * 0.02 : 0;
-  const sourceWidth = isNarrow ? image.naturalWidth * 0.64 : image.naturalWidth;
+  const sourceX = isNarrow ? image.naturalWidth * 0.26 : 0;
+  const sourceY = isNarrow ? image.naturalHeight * 0.08 : 0;
+  const sourceWidth = isNarrow ? image.naturalWidth * 0.48 : image.naturalWidth;
   const sourceHeight = isNarrow ? image.naturalHeight * 0.86 : image.naturalHeight;
   const imageRatio = sourceWidth / sourceHeight;
-  const maxHeight = height * (isNarrow ? 1.04 : 0.7);
-  const maxWidth = width * (isNarrow ? 1.9 : 0.42);
+  const maxHeight = height * (isNarrow ? 1.2 : 0.7);
+  const maxWidth = width * (isNarrow ? 2.35 : 0.42);
   const drawHeight = Math.min(maxHeight, maxWidth / imageRatio);
   const drawWidth = drawHeight * imageRatio;
   const drawX = (width - drawWidth) / 2;
