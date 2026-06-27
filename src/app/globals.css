@@ -410,7 +410,7 @@
 
 @media (max-width: 767px) {
   .robot-3d-core {
-    transform: scale(2.55) translateY(4%);
+    transform: scale(2.75) translateY(4%);
     transform-origin: center bottom;
   }
 }

@@ -45,7 +45,7 @@ export default function CommandHero() {
   const [cursor, setCursor] = useState<Point>({ x: -999, y: -999 });
   const [active, setActive] = useState(0);
   const [entered, setEntered] = useState(false);
-  const [mobileDirection, setMobileDirection] = useState<RobotDirection>("up");
+  const [mobileDirection, setMobileDirection] = useState<RobotDirection>("center");
   const { shouldReduce } = useMotionSafe();
   const reduceMotion = Boolean(shouldReduce);
 
@@ -170,10 +170,14 @@ function MobileServiceAtlas({
 }) {
   const orbitIndexes = [wrapIndex(active - 1), active, wrapIndex(active + 1)];
   const orbitDirections: RobotDirection[] = ["upper-left", "up", "upper-right"];
-  const orbitIndexSet = new Set(orbitIndexes);
-  const railServices = services
-    .map((service, index) => ({ service, index }))
-    .filter(({ index }) => !orbitIndexSet.has(index));
+  const railServices = [-3, -2, 2, 3].map((offset) => {
+    const index = wrapIndex(active + offset);
+    return {
+      service: services[index],
+      index,
+      direction: (offset < 0 ? "lower-left" : "lower-right") as RobotDirection,
+    };
+  });
 
   return (
     <div className="absolute inset-0 z-40 block md:hidden" aria-label="Mobile service discovery atlas">
@@ -207,9 +211,8 @@ function MobileServiceAtlas({
       </ol>
 
       <ol className="absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+var(--space-4))] flex gap-s2 overflow-x-auto px-gutter pb-s1 pt-s2" aria-label="Choose a service">
-        {railServices.map(({ service, index }, railIndex) => {
+        {railServices.map(({ service, index, direction }) => {
           const selected = index === active;
-          const direction = railIndex < railServices.length / 2 ? "lower-left" : "lower-right";
           return (
             <li key={service.id} className="shrink-0">
               <button
