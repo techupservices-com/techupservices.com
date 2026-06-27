@@ -19,7 +19,7 @@ function clamp(value: number, min: number, max: number) {
 }
 
 function getDirectionSrc(direction: Direction) {
-  return `${DIRECTION_PATH}${direction}.jpg`;
+  return `${DIRECTION_PATH}${direction}.jpeg`;
 }
 
 function getNearestDirection(x: number, y: number): Direction {
