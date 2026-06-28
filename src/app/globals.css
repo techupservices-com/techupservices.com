@@ -408,7 +408,7 @@
   width: 100%;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 768px) {
   .robot-3d-core {
     bottom: 0;
     top: calc(18dvh + clamp(3.75rem, 12vw, 4.75rem));
