@@ -14,19 +14,6 @@ const POINTER_SMOOTHING = 0.42;
 const CENTER_DEAD_ZONE = 0.16;
 const TRANSITION_MS = 180;
 const DIRECTIONS: Direction[] = ["center", "lower-left", "left", "upper-left", "up", "upper-right", "right", "lower-right", "down"];
-const processedMobileFrames = new WeakMap<HTMLImageElement, Map<string, HTMLCanvasElement>>();
-
-type FrameLayout = {
-  isNarrow: boolean;
-  sourceX: number;
-  sourceY: number;
-  sourceWidth: number;
-  sourceHeight: number;
-  drawX: number;
-  drawY: number;
-  drawWidth: number;
-  drawHeight: number;
-};
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -62,88 +49,18 @@ function easeOutCubic(value: number) {
   return 1 - Math.pow(1 - value, 3);
 }
 
-function removeDarkMatte(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number) {
-  const imageData = ctx.getImageData(x, y, width, height);
-  const { data } = imageData;
-
-  for (let index = 0; index < data.length; index += 4) {
-    const red = data[index];
-    const green = data[index + 1];
-    const blue = data[index + 2];
-    const luma = red * 0.2126 + green * 0.7152 + blue * 0.0722;
-    const chroma = Math.max(red, green, blue) - Math.min(red, green, blue);
-    const pixel = index / 4;
-    const pixelX = pixel % width;
-    const edgeDistance = Math.min(pixelX, width - 1 - pixelX);
-    const edgeFade = clamp(edgeDistance / Math.max(1, width * 0.14), 0, 1);
-
-    if (luma < 16 && chroma < 14) {
-      data[index + 3] = 0;
-    } else if (luma < 46 && chroma < 18) {
-      data[index + 3] = Math.round(data[index + 3] * ((luma - 16) / 30));
-    }
-
-    if (edgeFade < 1) data[index + 3] = Math.round(data[index + 3] * edgeFade);
-  }
-
-  ctx.putImageData(imageData, x, y);
-}
-
-function getFrameLayout(image: HTMLImageElement, width: number, height: number): FrameLayout {
+function drawContain(ctx: CanvasRenderingContext2D, image: HTMLImageElement, width: number, height: number) {
   const cssWidth = width / (window.devicePixelRatio || 1);
   const isNarrow = cssWidth < 768;
-  const sourceX = isNarrow ? image.naturalWidth * 0.21 : 0;
-  const sourceY = isNarrow ? image.naturalHeight * 0.04 : 0;
-  const sourceWidth = isNarrow ? image.naturalWidth * 0.58 : image.naturalWidth;
-  const sourceHeight = isNarrow ? image.naturalHeight * 0.9 : image.naturalHeight;
+  const sourceX = 0;
+  const sourceY = 0;
+  const sourceWidth = image.naturalWidth;
+  const sourceHeight = image.naturalHeight;
   const imageRatio = sourceWidth / sourceHeight;
   const drawHeight = isNarrow ? Math.min(height * 0.94, width / imageRatio) : Math.min(height * 0.7, (width * 0.42) / imageRatio);
   const drawWidth = drawHeight * imageRatio;
   const drawX = (width - drawWidth) / 2;
   const drawY = isNarrow ? height - drawHeight : height - drawHeight * 0.92;
-
-  return { isNarrow, sourceX, sourceY, sourceWidth, sourceHeight, drawX, drawY, drawWidth, drawHeight };
-}
-
-function getProcessedMobileFrame(
-  image: HTMLImageElement,
-  sourceX: number,
-  sourceY: number,
-  sourceWidth: number,
-  sourceHeight: number,
-  drawWidth: number,
-  drawHeight: number,
-) {
-  const bufferWidth = Math.max(1, Math.ceil(drawWidth));
-  const bufferHeight = Math.max(1, Math.ceil(drawHeight));
-  const cacheKey = [sourceX, sourceY, sourceWidth, sourceHeight, bufferWidth, bufferHeight].map(Math.round).join(":");
-  const imageCache = processedMobileFrames.get(image) ?? new Map<string, HTMLCanvasElement>();
-  const cachedFrame = imageCache.get(cacheKey);
-  if (cachedFrame) return cachedFrame;
-
-  const buffer = document.createElement("canvas");
-  buffer.width = bufferWidth;
-  buffer.height = bufferHeight;
-
-  const bufferContext = buffer.getContext("2d", { willReadFrequently: true });
-  if (!bufferContext) return image;
-
-  bufferContext.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, buffer.width, buffer.height);
-  removeDarkMatte(bufferContext, 0, 0, buffer.width, buffer.height);
-  imageCache.set(cacheKey, buffer);
-  processedMobileFrames.set(image, imageCache);
-
-  return buffer;
-}
-
-function drawContain(ctx: CanvasRenderingContext2D, image: HTMLImageElement, width: number, height: number) {
-  const { isNarrow, sourceX, sourceY, sourceWidth, sourceHeight, drawX, drawY, drawWidth, drawHeight } = getFrameLayout(image, width, height);
-
-  if (isNarrow) {
-    const processedFrame = getProcessedMobileFrame(image, sourceX, sourceY, sourceWidth, sourceHeight, drawWidth, drawHeight);
-    ctx.drawImage(processedFrame, drawX, drawY, drawWidth, drawHeight);
-    return;
-  }
 
   ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, drawX, drawY, drawWidth, drawHeight);
 }
@@ -198,23 +115,9 @@ export default function RobotCore({ accent, mobileDirection }: RobotCoreProps) {
       image.decoding = "async";
       image.src = getDirectionSrc(direction);
       image.onload = () => {
-        warmMobileFrames();
         if (direction === "center" || direction === state.toDirection) drawStaticDirection(getCurrentDirection());
       };
       directionImagesRef.current[direction] = image;
-    }
-
-    function warmMobileFrames() {
-      const cssWidth = canvasElement.width / (window.devicePixelRatio || 1);
-      if (cssWidth >= 768) return;
-
-      for (const direction of DIRECTIONS) {
-        const image = directionImagesRef.current[direction];
-        if (!image?.complete || image.naturalWidth <= 0) continue;
-
-        const { sourceX, sourceY, sourceWidth, sourceHeight, drawWidth, drawHeight } = getFrameLayout(image, canvasElement.width, canvasElement.height);
-        getProcessedMobileFrame(image, sourceX, sourceY, sourceWidth, sourceHeight, drawWidth, drawHeight);
-      }
     }
 
     function resizeCanvas() {
@@ -228,7 +131,6 @@ export default function RobotCore({ accent, mobileDirection }: RobotCoreProps) {
         canvasElement.height = nextHeight;
         state.canvasWidth = nextWidth;
         state.canvasHeight = nextHeight;
-        warmMobileFrames();
         drawStaticDirection(getCurrentDirection());
       }
     }

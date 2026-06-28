@@ -459,14 +459,10 @@
 @media (max-width: 768px) {
   .robot-3d-core {
     bottom: 0;
-    left: -18vw;
-    right: -18vw;
+    left: -90vw;
+    right: -90vw;
     top: calc(18dvh + clamp(3.75rem, 12vw, 4.75rem));
     transform: none;
-  }
-
-  .robot-3d-core canvas {
-    mix-blend-mode: lighten;
   }
 }
 
