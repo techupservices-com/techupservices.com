@@ -464,6 +464,10 @@
     top: calc(18dvh + clamp(3.75rem, 12vw, 4.75rem));
     transform: none;
   }
+
+  .robot-3d-core canvas {
+    mix-blend-mode: lighten;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
