@@ -254,8 +254,8 @@ function MobileServiceAtlas({
   });
 
   return (
-    <div className="absolute inset-0 z-40 block md:hidden" aria-label="Mobile service discovery atlas">
-      <ol className="absolute inset-x-0 top-0 h-[58dvh]" aria-label="Featured services">
+    <div className="mobile-service-atlas absolute inset-0 z-40 block md:hidden" aria-label="Mobile service discovery atlas">
+      <ol className="mobile-service-orbit-holder absolute inset-x-0 top-0 h-[58dvh]" aria-label="Featured services">
         {orbitServices.map(({ service, index, offset, direction }, orbitIndex) => {
           const selected = index === active;
           const position = MOBILE_ORBIT_POSITIONS[orbitIndex];
@@ -279,7 +279,7 @@ function MobileServiceAtlas({
         })}
       </ol>
 
-      <ol className="absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+var(--space-4))] flex gap-s2 overflow-x-auto px-gutter pb-s1 pt-s2" aria-label="Choose a service">
+      <ol className="mobile-service-rail-holder absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+var(--space-4))] flex gap-s2 overflow-x-auto px-gutter pb-s1 pt-s2" aria-label="Choose a service">
         {railServices.map(({ service, index, offset, direction }) => {
           const selected = index === active;
           return (
