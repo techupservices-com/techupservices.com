@@ -56,7 +56,7 @@ function drawContain(ctx: CanvasRenderingContext2D, image: HTMLImageElement, wid
   const sourceWidth = image.naturalWidth;
   const sourceHeight = image.naturalHeight;
   const imageRatio = sourceWidth / sourceHeight;
-  const drawHeight = isNarrow ? Math.min(height * 1.08, width / imageRatio) : Math.min(height * 0.7, (width * 0.42) / imageRatio);
+  const drawHeight = isNarrow ? Math.min(height * 1.03, width / imageRatio) : Math.min(height * 0.7, (width * 0.42) / imageRatio);
   const drawWidth = drawHeight * imageRatio;
   const drawX = (width - drawWidth) / 2;
   const drawY = isNarrow ? height - drawHeight : height - drawHeight * 0.92;
