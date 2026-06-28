@@ -14,6 +14,7 @@ const POINTER_SMOOTHING = 0.42;
 const CENTER_DEAD_ZONE = 0.16;
 const TRANSITION_MS = 180;
 const DIRECTIONS: Direction[] = ["center", "lower-left", "left", "upper-left", "up", "upper-right", "right", "lower-right", "down"];
+const processedMobileFrames = new WeakMap<HTMLImageElement, Map<string, HTMLCanvasElement>>();
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -59,15 +60,52 @@ function removeDarkMatte(ctx: CanvasRenderingContext2D, x: number, y: number, wi
     const blue = data[index + 2];
     const luma = red * 0.2126 + green * 0.7152 + blue * 0.0722;
     const chroma = Math.max(red, green, blue) - Math.min(red, green, blue);
+    const pixel = index / 4;
+    const pixelX = pixel % width;
+    const edgeDistance = Math.min(pixelX, width - 1 - pixelX);
+    const edgeFade = clamp(edgeDistance / Math.max(1, width * 0.08), 0, 1);
 
-    if (luma < 10 && chroma < 8) {
+    if (luma < 16 && chroma < 14) {
       data[index + 3] = 0;
-    } else if (luma < 22 && chroma < 10) {
-      data[index + 3] = Math.round(data[index + 3] * ((luma - 10) / 12));
+    } else if (luma < 46 && chroma < 18) {
+      data[index + 3] = Math.round(data[index + 3] * ((luma - 16) / 30));
+    } else if (edgeFade < 1 && luma < 62 && chroma < 22) {
+      data[index + 3] = Math.round(data[index + 3] * edgeFade);
     }
   }
 
   ctx.putImageData(imageData, x, y);
+}
+
+function getProcessedMobileFrame(
+  image: HTMLImageElement,
+  sourceX: number,
+  sourceY: number,
+  sourceWidth: number,
+  sourceHeight: number,
+  drawWidth: number,
+  drawHeight: number,
+) {
+  const bufferWidth = Math.max(1, Math.ceil(drawWidth));
+  const bufferHeight = Math.max(1, Math.ceil(drawHeight));
+  const cacheKey = [sourceX, sourceY, sourceWidth, sourceHeight, bufferWidth, bufferHeight].map(Math.round).join(":");
+  const imageCache = processedMobileFrames.get(image) ?? new Map<string, HTMLCanvasElement>();
+  const cachedFrame = imageCache.get(cacheKey);
+  if (cachedFrame) return cachedFrame;
+
+  const buffer = document.createElement("canvas");
+  buffer.width = bufferWidth;
+  buffer.height = bufferHeight;
+
+  const bufferContext = buffer.getContext("2d", { willReadFrequently: true });
+  if (!bufferContext) return image;
+
+  bufferContext.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, buffer.width, buffer.height);
+  removeDarkMatte(bufferContext, 0, 0, buffer.width, buffer.height);
+  imageCache.set(cacheKey, buffer);
+  processedMobileFrames.set(image, imageCache);
+
+  return buffer;
 }
 
 function drawContain(ctx: CanvasRenderingContext2D, image: HTMLImageElement, width: number, height: number) {
@@ -83,8 +121,13 @@ function drawContain(ctx: CanvasRenderingContext2D, image: HTMLImageElement, wid
   const drawX = (width - drawWidth) / 2;
   const drawY = isNarrow ? height - drawHeight : height - drawHeight * 0.92;
 
+  if (isNarrow) {
+    const processedFrame = getProcessedMobileFrame(image, sourceX, sourceY, sourceWidth, sourceHeight, drawWidth, drawHeight);
+    ctx.drawImage(processedFrame, drawX, drawY, drawWidth, drawHeight);
+    return;
+  }
+
   ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, drawX, drawY, drawWidth, drawHeight);
-  if (isNarrow) removeDarkMatte(ctx, 0, 0, width, height);
 }
 
 export default function RobotCore({ accent, mobileDirection }: RobotCoreProps) {
