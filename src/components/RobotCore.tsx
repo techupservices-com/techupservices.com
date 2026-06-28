@@ -49,6 +49,27 @@ function easeOutCubic(value: number) {
   return 1 - Math.pow(1 - value, 3);
 }
 
+function removeDarkMatte(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number) {
+  const imageData = ctx.getImageData(x, y, width, height);
+  const { data } = imageData;
+
+  for (let index = 0; index < data.length; index += 4) {
+    const red = data[index];
+    const green = data[index + 1];
+    const blue = data[index + 2];
+    const luma = red * 0.2126 + green * 0.7152 + blue * 0.0722;
+    const chroma = Math.max(red, green, blue) - Math.min(red, green, blue);
+
+    if (luma < 10 && chroma < 8) {
+      data[index + 3] = 0;
+    } else if (luma < 22 && chroma < 10) {
+      data[index + 3] = Math.round(data[index + 3] * ((luma - 10) / 12));
+    }
+  }
+
+  ctx.putImageData(imageData, x, y);
+}
+
 function drawContain(ctx: CanvasRenderingContext2D, image: HTMLImageElement, width: number, height: number) {
   const cssWidth = width / (window.devicePixelRatio || 1);
   const isNarrow = cssWidth < 768;
@@ -63,6 +84,7 @@ function drawContain(ctx: CanvasRenderingContext2D, image: HTMLImageElement, wid
   const drawY = isNarrow ? height - drawHeight : height - drawHeight * 0.92;
 
   ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, drawX, drawY, drawWidth, drawHeight);
+  if (isNarrow) removeDarkMatte(ctx, 0, 0, width, height);
 }
 
 export default function RobotCore({ accent, mobileDirection }: RobotCoreProps) {
