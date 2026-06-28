@@ -16,6 +16,18 @@ const TRANSITION_MS = 180;
 const DIRECTIONS: Direction[] = ["center", "lower-left", "left", "upper-left", "up", "upper-right", "right", "lower-right", "down"];
 const processedMobileFrames = new WeakMap<HTMLImageElement, Map<string, HTMLCanvasElement>>();
 
+type FrameLayout = {
+  isNarrow: boolean;
+  sourceX: number;
+  sourceY: number;
+  sourceWidth: number;
+  sourceHeight: number;
+  drawX: number;
+  drawY: number;
+  drawWidth: number;
+  drawHeight: number;
+};
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
@@ -63,18 +75,34 @@ function removeDarkMatte(ctx: CanvasRenderingContext2D, x: number, y: number, wi
     const pixel = index / 4;
     const pixelX = pixel % width;
     const edgeDistance = Math.min(pixelX, width - 1 - pixelX);
-    const edgeFade = clamp(edgeDistance / Math.max(1, width * 0.08), 0, 1);
+    const edgeFade = clamp(edgeDistance / Math.max(1, width * 0.14), 0, 1);
 
     if (luma < 16 && chroma < 14) {
       data[index + 3] = 0;
     } else if (luma < 46 && chroma < 18) {
       data[index + 3] = Math.round(data[index + 3] * ((luma - 16) / 30));
-    } else if (edgeFade < 1 && luma < 62 && chroma < 22) {
-      data[index + 3] = Math.round(data[index + 3] * edgeFade);
     }
+
+    if (edgeFade < 1) data[index + 3] = Math.round(data[index + 3] * edgeFade);
   }
 
   ctx.putImageData(imageData, x, y);
+}
+
+function getFrameLayout(image: HTMLImageElement, width: number, height: number): FrameLayout {
+  const cssWidth = width / (window.devicePixelRatio || 1);
+  const isNarrow = cssWidth < 768;
+  const sourceX = isNarrow ? image.naturalWidth * 0.21 : 0;
+  const sourceY = isNarrow ? image.naturalHeight * 0.04 : 0;
+  const sourceWidth = isNarrow ? image.naturalWidth * 0.58 : image.naturalWidth;
+  const sourceHeight = isNarrow ? image.naturalHeight * 0.9 : image.naturalHeight;
+  const imageRatio = sourceWidth / sourceHeight;
+  const drawHeight = isNarrow ? Math.min(height * 0.94, width / imageRatio) : Math.min(height * 0.7, (width * 0.42) / imageRatio);
+  const drawWidth = drawHeight * imageRatio;
+  const drawX = (width - drawWidth) / 2;
+  const drawY = isNarrow ? height - drawHeight : height - drawHeight * 0.92;
+
+  return { isNarrow, sourceX, sourceY, sourceWidth, sourceHeight, drawX, drawY, drawWidth, drawHeight };
 }
 
 function getProcessedMobileFrame(
@@ -109,17 +137,7 @@ function getProcessedMobileFrame(
 }
 
 function drawContain(ctx: CanvasRenderingContext2D, image: HTMLImageElement, width: number, height: number) {
-  const cssWidth = width / (window.devicePixelRatio || 1);
-  const isNarrow = cssWidth < 768;
-  const sourceX = isNarrow ? image.naturalWidth * 0.21 : 0;
-  const sourceY = isNarrow ? image.naturalHeight * 0.04 : 0;
-  const sourceWidth = isNarrow ? image.naturalWidth * 0.58 : image.naturalWidth;
-  const sourceHeight = isNarrow ? image.naturalHeight * 0.9 : image.naturalHeight;
-  const imageRatio = sourceWidth / sourceHeight;
-  const drawHeight = isNarrow ? Math.min(height * 0.94, width / imageRatio) : Math.min(height * 0.7, (width * 0.42) / imageRatio);
-  const drawWidth = drawHeight * imageRatio;
-  const drawX = (width - drawWidth) / 2;
-  const drawY = isNarrow ? height - drawHeight : height - drawHeight * 0.92;
+  const { isNarrow, sourceX, sourceY, sourceWidth, sourceHeight, drawX, drawY, drawWidth, drawHeight } = getFrameLayout(image, width, height);
 
   if (isNarrow) {
     const processedFrame = getProcessedMobileFrame(image, sourceX, sourceY, sourceWidth, sourceHeight, drawWidth, drawHeight);
@@ -180,9 +198,23 @@ export default function RobotCore({ accent, mobileDirection }: RobotCoreProps) {
       image.decoding = "async";
       image.src = getDirectionSrc(direction);
       image.onload = () => {
+        warmMobileFrames();
         if (direction === "center" || direction === state.toDirection) drawStaticDirection(getCurrentDirection());
       };
       directionImagesRef.current[direction] = image;
+    }
+
+    function warmMobileFrames() {
+      const cssWidth = canvasElement.width / (window.devicePixelRatio || 1);
+      if (cssWidth >= 768) return;
+
+      for (const direction of DIRECTIONS) {
+        const image = directionImagesRef.current[direction];
+        if (!image?.complete || image.naturalWidth <= 0) continue;
+
+        const { sourceX, sourceY, sourceWidth, sourceHeight, drawWidth, drawHeight } = getFrameLayout(image, canvasElement.width, canvasElement.height);
+        getProcessedMobileFrame(image, sourceX, sourceY, sourceWidth, sourceHeight, drawWidth, drawHeight);
+      }
     }
 
     function resizeCanvas() {
@@ -196,6 +228,7 @@ export default function RobotCore({ accent, mobileDirection }: RobotCoreProps) {
         canvasElement.height = nextHeight;
         state.canvasWidth = nextWidth;
         state.canvasHeight = nextHeight;
+        warmMobileFrames();
         drawStaticDirection(getCurrentDirection());
       }
     }
