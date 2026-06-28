@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Bricolage_Grotesque, Inter_Tight } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import WhatsAppButton from "@/components/WhatsAppButton";
 
 /**
  * Type pairing — deliberate, not a default.
@@ -41,7 +40,6 @@ export default function RootLayout({
       <body className="bg-surface-base text-ink-body antialiased">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           {children}
-          <WhatsAppButton />
         </ThemeProvider>
       </body>
     </html>
